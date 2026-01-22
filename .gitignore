@@ -1,0 +1,40 @@
+# Go
+go-lang/dist/
+go-lang/*.exe
+go-lang/*.exe~
+go-lang/*.dll
+go-lang/*.so
+go-lang/*.dylib
+go-lang/*.test
+go-lang/*.out
+
+# Nim
+nim-lang/nimcache/
+nim-lang/*.exe
+nim-lang/bin/
+nim-lang/dist/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+
+# Local files (not for GitHub)
+AGENTS.md
+.IFLOW.md
+*.tar.gz
+*.zip
