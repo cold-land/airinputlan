@@ -157,8 +157,13 @@ The program will automatically open a browser to display the PC interface.
 ## ⚠️ Important Notes
 
 - **LAN Only** - Does not support cross-subnet or external network connections
+- **LAN Only** - Does not support cross-subnet or external network connections
 - **Single Device Limit** - Only allows one mobile device at a time
 - **Data Security** - In-memory only, data cleared on exit
+- **Firewall** - Need to open firewall port on first use
+- **Antivirus** - Some antivirus may need to add to whitelist
+- **Browser Compatibility** - Mobile supports Chrome, Edge, Safari, Firefox mainstream browsers
+- **QR Code Generation** - Depends on network, uses third-party website API, requires PC to access external network. If PC has no external network connection, you can manually enter IP address and port in mobile browser (e.g., `http://192.168.1.10:5000`)- **Data Security** - In-memory only, data cleared on exit
 - **Firewall** - Need to open firewall port on first use
 - **Antivirus** - Some antivirus may need to add to whitelist
 - **Browser Compatibility** - Mobile supports Chrome, Edge, Safari, Firefox mainstream browsers
