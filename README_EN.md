@@ -1,5 +1,7 @@
 # AirInputLan - Mobile Input, PC Real-time Sync
 
+[中文文档](README.md)
+
 PC voice input lags behind mobile. AirInputLan syncs mobile input to PC in real-time via LAN, suitable for mixed Chinese/English input, AI conversations, meeting records, etc.
 
 ## Project Information
@@ -10,9 +12,6 @@ This project provides implementations in two languages:
 - **nim-lang/** - Nim version (author's personal learning project for learning Nim and comparing development experience)
 
 > **Recommend using the go-lang version**, which is fully featured and thoroughly tested.
-
-[中文文档](README.md)
-
 ## 📋 Table of Contents
 
 - [Features](#features)

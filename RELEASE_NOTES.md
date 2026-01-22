@@ -65,7 +65,3 @@ This is the first public release of AirInputLan.
 
 - Allows multiple devices to connect (design should support single device only)
 - Lock file may not be cleaned after program crash
-
----
-
-**发布日期 / Release Date**: 2026-01-22

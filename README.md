@@ -1,5 +1,7 @@
 # AirInputLan - 手机输入，电脑实时同步
 
+[English Documentation](README_EN.md)
+
 电脑端语音输入体验差，手机端却很成熟。AirInputLan 通过局域网将手机输入的文字实时同步到电脑，适用于中英文混输、AI 对话、会议记录等办公场景。
 
 ## 项目说明
@@ -10,9 +12,6 @@
 - **nim-lang/** - Nim 语言版本（作者个人学习项目，用于学习 Nim 语言和对比两种语言的开发体验）
 
 > **推荐使用 go-lang 版本**，该版本功能完整，经过充分测试。
-
-[English Documentation](README_EN.md)
-
 ## 📋 目录
 
 - [功能特性](#功能特性)
