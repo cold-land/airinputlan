@@ -300,6 +300,21 @@
         .hidden {
             display: none !important;
         }
+
+        /* IP 选择下拉框 */
+        #ip-select {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            color: #333;
+            transition: background 0.3s, border-color 0.3s, color 0.3s;
+        }
+
+        body.dark-theme #ip-select {
+            background: #333;
+            border-color: #555;
+            color: #e0e0e0;
+        }
     </style>
 </head>
 <body>
@@ -344,18 +359,6 @@
             const isDark = document.body.classList.contains('dark-theme');
             const button = document.querySelector('.theme-toggle');
             button.textContent = isDark ? '☀️ 切换主题' : '🌙 切换主题';
-            
-            // 保存主题偏好
-            localStorage.setItem('theme', isDark ? 'dark' : 'light');
-        }
-
-        // 加载保存的主题
-        function loadTheme() {
-            const savedTheme = localStorage.getItem('theme');
-            if (savedTheme === 'dark') {
-                document.body.classList.add('dark-theme');
-                document.querySelector('.theme-toggle').textContent = '☀️ 切换主题';
-            }
         }
 
         // 检测重复字并高亮
@@ -398,9 +401,6 @@
         // 初始化
         function init() {
             console.log('初始化...');
-
-            // 加载保存的主题
-            loadTheme();
 
             // 清空所有内容
             document.getElementById('history-cards').innerHTML = '';
@@ -487,15 +487,13 @@
         function generateQRCodeForIP(ip, port) {
             const container = document.getElementById('qr-code');
             const url = `http://${ip}:${port}`;
-            
+
             console.log('生成二维码，URL:', url);
-            
+
             // 使用在线二维码 API 生成二维码
             const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(url)}`;
             container.innerHTML = `<img src="${qrUrl}" alt="二维码">`;
         }
-
-        
 
         // 设置 SSE 连接
         function setupEventSource() {

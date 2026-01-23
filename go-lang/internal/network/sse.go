@@ -99,6 +99,23 @@ func (s *SSEServer) registerClient(client *SSEClient) {
 			Type: "show_qr",
 			Data: "false",
 		}
+	} else {
+		// 如果是 PC 端连接，检查是否已有远程设备，如果有则隐藏二维码
+		// If PC connects, check if there are already remote devices, if so hide QR code
+		hasRemoteClient := false
+		for _, c := range s.clients {
+			if !isLocalIP(c.IP) {
+				hasRemoteClient = true
+				break
+			}
+		}
+		if hasRemoteClient {
+			log.Printf("[PC] 检测到已有远程设备连接，隐藏二维码")
+			s.broadcast <- Message{
+				Type: "show_qr",
+				Data: "false",
+			}
+		}
 	}
 }
 
