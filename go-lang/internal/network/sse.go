@@ -91,7 +91,7 @@ func (s *SSEServer) registerClient(client *SSEClient) {
 		connType = "Mobile (remote)"
 	}
 
-	log.Printf("[%s] Client connected, current connections: %d", connType, len(s.clients))
+	log.Printf("[%s] 客户端已连接，当前连接数: %d", connType, len(s.clients))
 
 	// 如果远程设备（手机端）连接，发送信号隐藏二维码 / If remote device (mobile) connects, send signal to hide QR code
 	if isRemote {
@@ -123,7 +123,7 @@ func (s *SSEServer) unregisterClient(client *SSEClient) {
 		client.isClosed = true
 		client.mu.Unlock()
 		close(client.Send)
-		log.Printf("[%s] Client disconnected, current connections: %d", connType, len(s.clients))
+		log.Printf("[%s] 客户端已断开，当前连接数: %d", connType, len(s.clients))
 
 		// 如果远程设备（手机端）断开，检查是否还有其他远程设备 / If remote device (mobile) disconnects, check for other remote devices
 		if isRemote {
@@ -171,7 +171,7 @@ func (s *SSEServer) Broadcast(message Message) {
 func (s *SSEServer) HandleSSE(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		if r := recover(); r != nil {
-			log.Printf("SSE panic recovered: %v", r)
+			log.Printf("SSE panic 恢复: %v", r)
 		}
 	}()
 
@@ -186,7 +186,7 @@ func (s *SSEServer) HandleSSE(w http.ResponseWriter, r *http.Request) {
 		connType = "Mobile (remote)"
 	}
 
-	log.Printf("[%s] Received connection request, IP: %s", connType, clientIP)
+	log.Printf("[%s] 收到连接请求，IP: %s", connType, clientIP)
 
 	// 使用 SSE (Server-Sent Events) 模拟 WebSocket / Use SSE (Server-Sent Events) to simulate WebSocket
 	w.Header().Set("Content-Type", "text/event-stream")
@@ -220,7 +220,7 @@ func (s *SSEServer) HandleSSE(w http.ResponseWriter, r *http.Request) {
 	go func() {
 		defer func() {
 			if r := recover(); r != nil {
-				log.Printf("Send goroutine panic recovered: %v", r)
+				log.Printf("发送协程 panic 恢复: %v", r)
 			}
 		}()
 

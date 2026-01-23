@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 	"unicode"
+	"unicode/utf8"
 )
 
 // ContentState 表示内容状态管理器
@@ -70,22 +71,8 @@ func (cs *ContentState) AddCard(content string) {
 	cs.mu.Lock()
 	defer cs.mu.Unlock()
 
-	// 过滤掉空白内容（空字符串或只有空格）
-	if content == "" || len(content) == 0 {
-		// 清空当前内容，避免重复触发分段
-		cs.currentContent = ""
-		return
-	}
-
-	// 检查是否只包含空白字符
-	hasNonSpace := false
-	for _, r := range content {
-		if !unicode.IsSpace(r) {
-			hasNonSpace = true
-			break
-		}
-	}
-	if !hasNonSpace {
+	// 过滤无意义内容 / Filter meaningless content
+	if !IsContentMeaningful(content) {
 		// 清空当前内容，避免重复触发分段
 		cs.currentContent = ""
 		return
@@ -120,6 +107,45 @@ func (cs *ContentState) splitContent(content string, maxLength int) []string {
 		segments = append(segments, content)
 	}
 	return segments
+}
+
+// IsContentMeaningful 检查内容是否有意义
+// 返回 false 表示内容应该被过滤（空白、单独标点等）
+// IsContentMeaningful checks if content is meaningful
+// Returns false if content should be filtered (whitespace, single punctuation, etc.)
+func IsContentMeaningful(content string) bool {
+	// 空字符串 / Empty string
+	if content == "" {
+		return false
+	}
+
+	// 只包含空白字符 / Only whitespace characters
+	hasNonSpace := false
+	for _, r := range content {
+		if !unicode.IsSpace(r) {
+			hasNonSpace = true
+			break
+		}
+	}
+	if !hasNonSpace {
+		return false
+	}
+
+	// 单独的标点符号 / Single punctuation character
+	if utf8.RuneCountInString(content) == 1 {
+		for _, r := range content {
+			// 空白字符 / Whitespace
+			if unicode.IsSpace(r) {
+				return false
+			}
+			// 标点符号（包括中文和英文） / Punctuation (including Chinese and English)
+			if unicode.IsPunct(r) {
+				return false
+			}
+		}
+	}
+
+	return true
 }
 
 // ShouldSegment 判断当前内容是否应该触发自动分段
