@@ -50,20 +50,18 @@ compress_file() {
     local FILE=$1
     local FILENAME=$(basename "$FILE")
     
+    # 跳过 macOS 文件（UPX 压缩后会被 Gatekeeper 杀掉）
+    if [[ "$FILENAME" == *macos* ]]; then
+        print_info "跳过 macOS 文件（UPX 压缩会导致无法运行）: $FILENAME"
+        return 0
+    fi
+    
     print_info "压缩: $FILENAME"
     
-    # macOS 版本需要特殊参数
-    if [[ "$FILENAME" == *macos* ]]; then
-        upx --best --lzma --force-macos "$FILE" || {
-            print_warning "$FILENAME 压缩失败"
-            return 1
-        }
-    else
-        upx --best --lzma "$FILE" || {
-            print_warning "$FILENAME 压缩失败"
-            return 1
-        }
-    fi
+    upx --best --lzma "$FILE" || {
+        print_warning "$FILENAME 压缩失败"
+        return 1
+    }
     
     if [ $? -eq 0 ]; then
         local NEW_SIZE=$(du -h "$FILE" | cut -f1)

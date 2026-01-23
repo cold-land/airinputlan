@@ -91,8 +91,12 @@ main() {
     build_platform "Linux" "linux" "amd64" "dist/AirInputLan-x86_64-linux" "$COMMON_LDFLAGS"
     echo ""
 
-    # 编译 macOS 版本
-    build_platform "macOS" "darwin" "amd64" "dist/AirInputLan-x86_64-macos" "$COMMON_LDFLAGS"
+    # 编译 macOS x86_64 版本（Intel Mac）
+    build_platform "macOS x86_64" "darwin" "amd64" "dist/AirInputLan-x86_64-macos" "$COMMON_LDFLAGS"
+    echo ""
+
+    # 编译 macOS ARM64 版本（Apple Silicon Mac）
+    build_platform "macOS ARM64" "darwin" "arm64" "dist/AirInputLan-arm64-macos" "$COMMON_LDFLAGS"
     echo ""
 
     # 编译 Windows 版本
@@ -105,14 +109,16 @@ main() {
     echo ""
     print_info "编译产物:"
     print_info "  Linux:   dist/AirInputLan-x86_64-linux"
-    print_info "  macOS:   dist/AirInputLan-x86_64-macos"
+    print_info "  macOS:   dist/AirInputLan-x86_64-macos (Intel)"
+    print_info "  macOS:   dist/AirInputLan-arm64-macos (Apple Silicon)"
     print_info "  Windows: dist/AirInputLan-x86_64-win.exe"
     echo ""
     print_info "如需压缩，请运行: ./scripts/compress.sh"
     echo ""
     print_info "运行方式:"
     print_info "  Linux:   chmod +x dist/AirInputLan-x86_64-linux && ./dist/AirInputLan-x86_64-linux"
-    print_info "  macOS:   ./dist/AirInputLan-x86_64-macos"
+    print_info "  macOS (Intel):   ./dist/AirInputLan-x86_64-macos"
+    print_info "  macOS (Apple Silicon):   ./dist/AirInputLan-arm64-macos"
     print_info "  Windows: 双击 dist/AirInputLan-x86_64-win.exe"
     echo ""
 }
