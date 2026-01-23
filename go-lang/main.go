@@ -17,6 +17,7 @@ import (
 	"syscall"
 	"time"
 	"unicode"
+	"unicode/utf8"
 
 	"airinputlan/internal/netif"
 	"airinputlan/internal/network"
@@ -231,23 +232,35 @@ func segmentTimer() {
 		if contentState.ShouldSegment() {
 			content := contentState.GetCurrentContent()
 			if content != "" {
-				// 检查是否是单独一个空格 / Check if single space
-				isSingleSpace := false
-				if len(content) == 1 {
+				// 检查是否是单独一个空格或标点符号 / Check if single space or punctuation
+				isSinglePunctuation := false
+				if utf8.RuneCountInString(content) == 1 {
 					for _, r := range content {
+						// 空格 / Space
 						if unicode.IsSpace(r) {
-							isSingleSpace = true
+							isSinglePunctuation = true
+							break
+						}
+						// 中文标点 / Chinese punctuation
+						if r == '，' || r == '。' || r == '？' || r == '！' || r == '；' || r == '：' || r == '、' {
+							isSinglePunctuation = true
+							break
+						}
+						// 英文标点 / English punctuation
+						if r == ',' || r == '.' || r == '?' || r == '!' || r == ';' || r == ':' {
+							isSinglePunctuation = true
+							break
 						}
 					}
 				}
-				
-				// 如果是单独一个空格，不生成卡片，只清空内容 / If single space, do not create card, just clear content
-				if isSingleSpace {
-					log.Printf("过滤单独空格")
+
+				// 如果是单独一个标点符号，不生成卡片，只清空内容 / If single punctuation, do not create card, just clear content
+				if isSinglePunctuation {
+					log.Printf("过滤单独标点符号: %q", content)
 					contentState.Clear()
 					continue
 				}
-				
+
 				// 添加到历史卡片 / Add to history cards
 				contentState.AddCard(content)
 

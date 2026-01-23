@@ -272,35 +272,46 @@ sudo ufw allow 5000/tcp
 使用统一编译脚本，自动检测当前平台并编译：
 
 ```bash
-cd go-v1
+cd go-lang
 ./scripts/build_all.sh
 ```
 
-编译产物位于 `dist/<平台>/` 目录。
+编译产物位于 `dist/` 目录，文件名包含平台标识。
 
 ### 手动编译
 
 #### Linux
 ```bash
-cd go-v1
+cd go-lang
 ./scripts/build_linux.sh
-chmod +x dist/linux/AirInputLan
-./dist/linux/AirInputLan
+chmod +x dist/AirInputLan-x86_64-linux
+./dist/AirInputLan-x86_64-linux
 ```
 
 #### Windows
 ```bash
-cd go-v1
-scripts\build_windows.bat
-dist\windows\AirInputLan.exe
+cd go-lang
+./scripts/build_windows.sh
+dist\AirInputLan-x86_64-win.exe
 ```
 
 #### macOS
 ```bash
-cd go-v1
+cd go-lang
 ./scripts/build_macos.sh
-./dist/macos/AirInputLan
+./dist/AirInputLan-x86_64-macos
 ```
+
+### 压缩编译产物
+
+编译完成后，可以使用 UPX 压缩可执行文件：
+
+```bash
+cd go-lang
+./scripts/compress.sh
+```
+
+压缩后文件大小约为原始大小的 31-32%。
 
 ### 编译要求
 
@@ -317,7 +328,7 @@ cd go-v1
 ## 📁 项目结构
 
 ```
-go-v1/
+go-lang/
 ├── internal/           # 内部模块
 │   ├── netif/         # 网卡扫描和识别
 │   │   ├── scanner.go # 网卡扫描实现
@@ -338,15 +349,13 @@ go-v1/
 │   │   └── index.html
 │   └── mobile/        # 手机端界面
 │       └── index.html
-├── scripts/           # 打包脚本
+├── scripts/           # 编译脚本
 │   ├── build_all.sh   # 统一编译
 │   ├── build_linux.sh # Linux 编译
 │   ├── build_macos.sh # macOS 编译
-│   └── build_windows.sh # Windows 编译
+│   ├── build_windows.sh # Windows 编译
+│   └── compress.sh    # 压缩脚本
 ├── dist/              # 编译产物
-│   ├── linux/
-│   ├── macos/
-│   └── windows/
 ├── main.go            # 主程序
 ├── go.mod             # Go 模块
 └── README.md          # 本文件

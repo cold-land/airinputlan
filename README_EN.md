@@ -272,35 +272,46 @@ sudo ufw allow 5000/tcp
 Use unified build script, auto-detect current platform and build:
 
 ```bash
-cd go-v1
+cd go-lang
 ./scripts/build_all.sh
 ```
 
-Build artifacts located in `dist/<platform>/` directory.
+Build artifacts located in `dist/` directory, filenames include platform identifier.
 
 ### Manual Build
 
 #### Linux
 ```bash
-cd go-v1
+cd go-lang
 ./scripts/build_linux.sh
-chmod +x dist/linux/AirInputLan
-./dist/linux/AirInputLan
+chmod +x dist/AirInputLan-x86_64-linux
+./dist/AirInputLan-x86_64-linux
 ```
 
 #### Windows
 ```bash
-cd go-v1
-scripts\build_windows.bat
-dist\windows\AirInputLan.exe
+cd go-lang
+./scripts/build_windows.sh
+dist\AirInputLan-x86_64-win.exe
 ```
 
 #### macOS
 ```bash
-cd go-v1
+cd go-lang
 ./scripts/build_macos.sh
-./dist/macos/AirInputLan
+./dist/AirInputLan-x86_64-macos
 ```
+
+### Compress Build Artifacts
+
+After building, you can use UPX to compress executables:
+
+```bash
+cd go-lang
+./scripts/compress.sh
+```
+
+Compressed file size is approximately 31-32% of original size.
 
 ### Build Requirements
 
@@ -317,7 +328,7 @@ cd go-v1
 ## 📁 Project Structure
 
 ```
-go-v1/
+go-lang/
 ├── internal/           # Internal modules
 │   ├── netif/         # Network card scanning and recognition
 │   │   ├── scanner.go # Network card scanning implementation
@@ -342,11 +353,9 @@ go-v1/
 │   ├── build_all.sh   # Unified build
 │   ├── build_linux.sh # Linux build
 │   ├── build_macos.sh # macOS build
-│   └── build_windows.sh # Windows build
+│   ├── build_windows.sh # Windows build
+│   └── compress.sh    # Compression script
 ├── dist/              # Build artifacts
-│   ├── linux/
-│   ├── macos/
-│   └── windows/
 ├── main.go            # Main program
 ├── go.mod             # Go module
 └── README.md          # This file
