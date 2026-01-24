@@ -16,27 +16,36 @@ const (
 	LOCKFILE_FAIL_IMMEDIATELY = 0x00000001
 )
 
+// Windows API 函数号 / Windows API function numbers
+const (
+	procLockFileEx   = 0x000003A0 // LockFileEx
+	procUnlockFileEx = 0x000003A1 // UnlockFileEx
+)
+
 // lockFileUnix 在 Windows 上获取文件锁
 // lockFileUnix acquires file lock on Windows platform
 func lockFileUnix(file *os.File) error {
 	// 获取文件句柄 / Get file handle
-	handle := syscall.Handle(file.Fd())
+	handle := file.Fd()
 
 	// 创建 overlapped 结构体 / Create overlapped structure
 	var overlapped syscall.Overlapped
 
 	// 调用 LockFileEx 获取独占锁 / Call LockFileEx to acquire exclusive lock
 	// 锁定整个文件（从 0 开始，锁定 0xFFFFFFFF 字节） / Lock entire file (from 0, lock 0xFFFFFFFF bytes)
-	err := syscall.LockFileEx(
-		handle,
-		LOCKFILE_EXCLUSIVE_LOCK|LOCKFILE_FAIL_IMMEDIATELY,
+	// LockFileEx(hFile, dwFlags, dwReserved, nNumberOfBytesToLockLow, nNumberOfBytesToLockHigh, lpOverlapped)
+	_, _, err := syscall.Syscall6(
+		procLockFileEx,
+		6,
+		uintptr(handle),
+		uintptr(LOCKFILE_EXCLUSIVE_LOCK|LOCKFILE_FAIL_IMMEDIATELY),
 		0,
 		0xFFFFFFFF,
 		0xFFFFFFFF,
-		&overlapped,
+		uintptr(unsafe.Pointer(&overlapped)),
 	)
 	
-	if err != nil {
+	if err != syscall.Errno(0) {
 		return err
 	}
 	
@@ -47,22 +56,26 @@ func lockFileUnix(file *os.File) error {
 // unlockFileUnix releases file lock on Windows platform
 func unlockFileUnix(file *os.File) error {
 	// 获取文件句柄 / Get file handle
-	handle := syscall.Handle(file.Fd())
+	handle := file.Fd()
 
 	// 创建 overlapped 结构体 / Create overlapped structure
 	var overlapped syscall.Overlapped
 
 	// 调用 UnlockFileEx 释放锁 / Call UnlockFileEx to release lock
 	// 解锁整个文件（从 0 开始，解锁 0xFFFFFFFF 字节） / Unlock entire file (from 0, unlock 0xFFFFFFFF bytes)
-	err := syscall.UnlockFileEx(
-		handle,
+	// UnlockFileEx(hFile, dwReserved, nNumberOfBytesToLockLow, nNumberOfBytesToLockHigh, lpOverlapped)
+	_, _, err := syscall.Syscall6(
+		procUnlockFileEx,
+		5,
+		uintptr(handle),
 		0,
 		0xFFFFFFFF,
 		0xFFFFFFFF,
-		&overlapped,
+		uintptr(unsafe.Pointer(&overlapped)),
+		0,
 	)
 	
-	if err != nil {
+	if err != syscall.Errno(0) {
 		return err
 	}
 	
