@@ -172,9 +172,11 @@ func (s *SSEServer) unregisterClient(client *SSEClient) {
 		}
 
 		client.mu.Lock()
-		client.isClosed = true
+		if !client.isClosed {
+			client.isClosed = true
+			close(client.Send) // 只在未关闭时才关闭
+		}
 		client.mu.Unlock()
-		close(client.Send)
 		log.Printf("[%s] 客户端已断开，当前连接数: %d", connType, len(s.Clients))
 
 		// 如果远程设备（手机端）断开，检查是否还有其他远程设备 / If remote device (mobile) disconnects, check for other remote devices
