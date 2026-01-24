@@ -11,12 +11,10 @@ v1.1.2 (2026-01-24)
 
 修复问题 / Bug Fixes:
   * 修复卡片开头标点过滤问题
-    - 修复过滤时机，确保 PC 端接收到过滤后的内容
     - 过滤开头的中文标点符号：。！？，
     - 过滤多个连续的标点符号
     - 过滤标点符号后面的空白字符
   * Fix leading punctuation filtering issue for cards
-    - Fix filtering timing to ensure PC receives filtered content
     - Filter leading Chinese punctuation marks: 。！？，
     - Filter multiple consecutive punctuation marks
     - Filter whitespace after punctuation marks
