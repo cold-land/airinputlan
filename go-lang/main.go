@@ -26,6 +26,14 @@ import (
 	"airinputlan/internal/state"
 )
 
+const (
+	ServiceStartupDelay    = 500 * time.Millisecond // 服务启动延迟
+	HeartbeatInterval      = 15 * time.Second        // 心跳间隔
+	DefaultSegmentInterval = 2 * time.Second         // 默认分段间隔
+	DefaultMaxCardCount    = 50                      // 默认最大卡片数量
+	DefaultMaxCardLength   = 1000                    // 默认最大卡片长度（字符数）
+)
+
 //go:embed web/pc web/mobile
 var webFS embed.FS
 
@@ -85,7 +93,7 @@ func main() {
 	fmt.Println()
 
 	// 初始化内容状态 / Initialize content state
-	contentState = state.NewContentState(2*time.Second, 50, 1000)
+	contentState = state.NewContentState(DefaultSegmentInterval, DefaultMaxCardCount, DefaultMaxCardLength)
 
 	// 清空之前的内容（防止重启后保留旧内容） / Clear previous content (prevent old content retention)
 	contentState.Clear()
@@ -120,7 +128,7 @@ func main() {
 	httpServer.HandleFunc("/api/port", network.HandleGetPort(port))
 
 	// 等待服务启动 / Wait for service startup
-	time.Sleep(500 * time.Millisecond)
+	time.Sleep(ServiceStartupDelay)
 
 	// 显示端口信息 / Display port information
 	fmt.Printf("服务端口: %d\n", port)
