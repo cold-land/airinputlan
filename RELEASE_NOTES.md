@@ -8,39 +8,9 @@ This is AirInputLan v1.1.2 release, fixing multiple security and stability issue
 
 ## ⚠️ 注意事项 / Important Notes
 
-**macOS 和 Linux 用户请注意**：
-- 本程序需要在**终端**中运行，不能双击直接运行
-- 如果双击运行，程序会在后台运行，不会显示任何窗口
-- 请使用以下命令运行：
-  ```bash
-  chmod +x AirInputLan*
-  ./AirInputLan-x86_64-linux  # Linux
-  ./AirInputLan-x86_64-macos   # macOS Intel
-  ./AirInputLan-arm64-macos    # macOS Apple Silicon
-  ```
-- Windows 用户可以双击 `AirInputLan-x86_64-win.exe` 直接运行
+# macOS 和 Linux用户请在终端下运行，不能双击运行
 
-**其他注意事项**：
-- Windows：首次运行会弹出防火墙提示，点击"允许"
-- 手机和电脑必须在同一个局域网内
-- macOS 版本未使用 UPX 压缩，避免被 Gatekeeper 杀掉
-
-**macOS and Linux Users Please Note**:
-- This program must be run in **terminal**, cannot be run by double-click
-- If run by double-click, program will run in background without any window
-- Please use the following command to run:
-  ```bash
-  chmod +x AirInputLan*
-  ./AirInputLan-x86_64-linux  # Linux
-  ./AirInputLan-x86_64-macos   # macOS Intel
-  ./AirInputLan-arm64-macos    # macOS Apple Silicon
-  ```
-- Windows users can double-click `AirInputLan-x86_64-win.exe` to run directly
-
-**Other Important Notes**:
-- Windows: Firewall prompt will appear on first run, click "Allow"
-- Mobile and PC must be in the same LAN
-- macOS versions are not compressed with UPX to avoid being killed by Gatekeeper
+# macOS and Linux Users please run in terminal, cannot double-click to run
 
 ## ✨ 新功能 / New Features
 
