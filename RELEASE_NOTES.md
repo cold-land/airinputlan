@@ -8,9 +8,9 @@ This is AirInputLan v1.1.2 release, fixing multiple security and stability issue
 
 ## ⚠️ 注意事项 / Important Notes
 
-# macOS 和 Linux用户请在终端下运行，不能双击运行
+## MacOS 和 Linux用户请在终端下运行，不要双击运行
 
-# macOS and Linux Users please run in terminal, cannot double-click to run
+## MacOS and Linux Users please run in terminal, DO NOT double-click to run
 
 ## ✨ 新功能 / New Features
 
