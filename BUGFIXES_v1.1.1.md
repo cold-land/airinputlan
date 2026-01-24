@@ -178,14 +178,85 @@
 
 ---
 
-### 9. ⏸️ 缺少日志级别控制（待修复）
+### 9. ✅ 缺少日志级别控制（已修复）
 
-**问题：**
+**问题描述：**
 - 所有日志都使用 `log.Println`
 - 无法控制日志详细程度
 - 生产环境可能产生过多日志
+- 日志格式不统一，中英文混合
 
-**状态：** 待修复
+**修复方案：**
+- 添加 `--debug` 命令行参数
+- 实现统一的日志格式：`[操作类型][协议][流向] 内容`
+- 添加日志级别控制：
+  - `LogInfo()` - 一般信息（始终显示）
+  - `LogDebug()` - 调试信息（--debug 模式）
+  - `LogFormat()` - 格式化日志（--debug 模式）
+- 将所有英文日志改为中文（PC端、手机端）
+
+**修改文件：**
+- `go-lang/internal/network/logger.go` - 添加 LogInfo、LogDebug、LogFormat 函数
+- `go-lang/internal/network/http.go` - 替换所有日志调用
+- `go-lang/internal/network/sse.go` - 替换所有日志调用
+- `go-lang/main.go` - 添加 --debug 参数并替换所有日志调用
+
+**修复效果：**
+- 默认模式：只显示关键信息（启动、分段、退出）
+- 调试模式：显示详细日志（HTTP 请求、连接管理、模式切换等）
+- 日志格式统一，易于阅读和解析
+- 所有日志使用中文，更加友好
+
+**使用方式：**
+```bash
+# 默认模式（只显示一般信息）
+./AirInputLan-x86_64-linux
+
+# 调试模式（显示所有日志）
+./AirInputLan-x86_64-linux --debug
+```
+
+---
+
+### 10. ✅ 退出流程慢且缺少日志（已修复）
+
+**问题描述：**
+- 退出时需要等待 1-2 秒
+- 没有详细的退出日志，无法定位问题
+- 显示误导性的错误信息（ServerClosed、DeadlineExceeded）
+
+**修复方案：**
+- 添加 `CloseAllClients()` 方法，主动关闭所有 SSE 连接
+- 优化退出流程：清理资源 → 关闭 SSE 连接 → 等待 context 取消 → 关闭 HTTP 服务
+- 添加详细的退出日志，显示每个步骤的耗时
+- 过滤正常的关闭错误（ServerClosed、DeadlineExceeded）
+- 将 HTTP 服务关闭超时设置为 200ms
+
+**修改文件：**
+- `go-lang/internal/network/sse.go` - 添加 CloseAllClients 方法
+- `go-lang/main.go` - 优化 waitForExit 函数，添加详细日志
+
+**修复效果：**
+- 退出时间从 1-2 秒减少到 250ms 左右
+- 每个退出步骤都有详细的时间和状态日志
+- 不显示误导性的错误信息
+- 退出流程清晰可控
+
+**日志示例：**
+```
+正在退出...
+清理资源...
+资源清理完成，耗时: 14µs
+开始关闭 SSE 连接...
+开始关闭 2 个 SSE 连接...
+已关闭 2 个 SSE 连接
+SSE 连接关闭完成，耗时: 52µs
+等待 HTTP 请求 context 取消...
+HTTP 请求 context 取消完成
+开始关闭 HTTP 服务...
+HTTP 服务关闭超时（200ms），强制退出，耗时: 200ms
+程序已安全退出，总耗时: 250ms
+```
 
 ---
 
