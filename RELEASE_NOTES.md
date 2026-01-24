@@ -48,28 +48,13 @@ This is AirInputLan v1.1.2 release, fixing multiple security and stability issue
 
 **修复问题 / Bug Fixes**:
 - 🐛 修复卡片开头标点过滤问题
-  - 过滤开头的中文标点符号：。！？，
-  - 过滤标点符号后面的空白字符
 - 🐛 修复 HTTP 服务 Listener 资源泄漏
-  - 确保程序关闭时正确释放 TCP 端口
-  - 避免频繁启动/停止时出现端口被占用的错误
 - 🐛 修复文件锁释放失败问题
-  - 改进错误处理逻辑，确保锁文件状态一致
 - 🐛 修复前端定时器泄漏风险
-  - 添加 clearAllTimers() 函数统一管理定时器
-  - 在页面卸载时清除所有定时器，防止内存泄漏
-- 🐛 修复手机端连接检查逻辑
-  - 同一手机刷新时允许重新连接
-  - 不同手机尝试连接时拒绝
-  - 添加 IP 地址判断，避免误判
+- 🐛 修复手机端连接检查逻辑，支持同设备刷新重连
 - 🐛 修复 PC 端网页 XSS 安全漏洞
-  - 使用 textContent 替代 innerHTML
-  - 防止恶意脚本注入
 - 🐛 修复全局变量 mobileSegmentMode 并发安全问题
-  - 添加 sync.RWMutex 保护并发访问
 - 🐛 修复 SSE 客户端连接管理缺陷
-  - 在 HandleSSE 中完成所有检查后再注册
-  - 避免部分注册后再拒绝
 
 **优化 / Optimizations**:
 - ✨ 定义常量替代魔法数字
@@ -104,24 +89,6 @@ This is AirInputLan v1.1.2 release, fixing multiple security and stability issue
 - 🐛 修复模式切换时双重分段的问题
 - 🐛 修复手机重连后模式不一致的问题
 - 🐛 优化按钮状态更新时机（等待服务端确认）
-
-### v1.0.34 (2026-01-23)
-
-**新增功能 / New Features**:
-- ✅ 主题切换功能（明亮/暗色）
-- ✅ 重复字高亮功能
-- ✅ 增强内容过滤（过滤单独标点符号和空格）
-
-**修复问题 / Bug Fixes**:
-- 🐛 修复 UTF-8 字符计数问题
-- 🐛 修复 PC 端刷新页面后二维码一直显示的问题
-
-### v1.0.33
-
-- 首次公开版本
-- Initial public release
-- 基础功能完整
-- Basic features complete
 
 ---
 
