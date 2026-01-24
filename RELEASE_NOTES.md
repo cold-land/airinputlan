@@ -1,10 +1,10 @@
-# AirInputLan v1.0.34
+# AirInputLan v1.1
 
 ## 🎉 新版本发布 / New Release
 
-这是 AirInputLan v1.0.34 版本，新增了主题切换和重复字高亮功能。
+这是 AirInputLan v1.1 版本，新增了双模式分段系统和手机端主题切换功能。
 
-This is AirInputLan v1.0.34 release, adding theme switching and duplicate character highlighting features.
+This is AirInputLan v1.1 release, adding dual-mode segmentation system and mobile theme switching features.
 
 ## ⚠️ 注意事项 / Important Notes
 
@@ -46,51 +46,41 @@ This is AirInputLan v1.0.34 release, adding theme switching and duplicate charac
 
 ## ✨ 新功能 / New Features
 
-### 主题切换 / Theme Switching
+### v1.1 (2026-01-24)
 
-- 新增明亮和暗色两种主题
-- 右上角按钮切换主题
-- 所有组件完美适配两种主题
+**新增功能 / New Features**:
+- ✅ 双模式分段系统（单次输入/连续输入）
+- ✅ 手机端主题切换（明亮/暗色）
+- ✅ 手机端界面优化（竖向文字、连接状态指示器）
 
-- Added light and dark themes
-- Switch theme via button in top-right corner
-- All components perfectly adapted to both themes
-
-### 重复字高亮 / Duplicate Character Highlighting
-
-- 自动检测历史卡片中的重复字符
-- 支持单字重复（如"好好"、"天天"）
-- 支持双字重复（如"非常非常"、"了。了。"）
-- 背景色高亮，明亮主题黄色，暗色主题橙色
-- 编辑卡片时实时更新高亮
-
-- Automatically detect duplicate characters in history cards
-- Support single character duplication (e.g., "好好", "天天")
-- Support double character duplication (e.g., "非常非常", "了。了。")
-- Background color highlighting: yellow for light theme, orange for dark theme
-- Real-time update highlighting when editing cards
-
-### 内容过滤增强 / Enhanced Content Filtering
-
-- 过滤单独的标点符号和空格（中文和英文）
-
-- Filter standalone punctuation marks and spaces (Chinese and English)
-
-## 🐛 已修复问题 / Bug Fixes
-
-- 修复 UTF-8 字符计数问题，正确处理中文标点符号
-- 修复 PC 端刷新页面后二维码一直显示的问题
-
-- Fixed UTF-8 character counting issue, correctly handling Chinese punctuation
-- Fixed issue where QR code remains visible after PC page refresh
-
-## 📝 完整更新日志 / Full Changelog
+**修复问题 / Bug Fixes**:
+- 🐛 修复 PC 端刷新页面后二维码一直显示的问题
+- 🐛 修复模式切换时双重分段的问题
+- 🐛 修复手机重连后模式不一致的问题
+- 🐛 优化按钮状态更新时机（等待服务端确认）
 
 ### v1.0.34 (2026-01-23)
-- 新增主题切换功能（明亮/暗色）
-- 新增重复字高亮功能
-- 增强内容过滤（过滤单独标点符号和空格）
-- 修复 UTF-8 字符计数问题
+
+**新增功能 / New Features**:
+- ✅ 主题切换功能（明亮/暗色）
+- ✅ 重复字高亮功能
+- ✅ 增强内容过滤（过滤单独标点符号和空格）
+
+**修复问题 / Bug Fixes**:
+- 🐛 修复 UTF-8 字符计数问题
+- 🐛 修复 PC 端刷新页面后二维码一直显示的问题
 
 ### v1.0.33
+
 - 首次公开版本
+- Initial public release
+- 基础功能完整
+- Basic features complete
+
+---
+
+## 📚 历史版本 / Historical Versions
+
+查看所有历史版本的更新日志，请访问 [CHANGELOG.txt](CHANGELOG.txt)
+
+For the complete changelog of all historical versions, please visit [CHANGELOG.txt](CHANGELOG.txt)

@@ -6,6 +6,7 @@ package main
 
 import (
 	"embed"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -27,9 +28,10 @@ import (
 var webFS embed.FS
 
 var (
-	contentState *state.ContentState
-	httpServer   *network.HttpServer
-	sseServer    *network.SSEServer
+	contentState      *state.ContentState
+	httpServer        *network.HttpServer
+	sseServer         *network.SSEServer
+	mobileSegmentMode bool = true // 是否使用手机控制分段模式（默认单次输入）
 )
 
 func main() {
@@ -83,6 +85,7 @@ func main() {
 
 	// 初始化内容状态 / Initialize content state
 	contentState = state.NewContentState(2*time.Second, 50, 500)
+	//contentState = state.NewContentState(6*time.Second, 1000, 500)
 
 	// 清空之前的内容（防止重启后保留旧内容） / Clear previous content (prevent old content retention)
 	contentState.Clear()
@@ -103,6 +106,9 @@ func main() {
 	httpServer.HandleFunc("/ws/message", sseServer.HandlePostMessage)
 	httpServer.HandleFunc("/api/ip", network.HandleGetIP(convertIps(ips)))
 	httpServer.HandleFunc("/api/port", network.HandleGetPort(port))
+	httpServer.HandleFunc("/api/segment", handleSegmentRequest)
+	httpServer.HandleFunc("/api/mode", handleModeChange)
+	httpServer.HandleFunc("/api/mode/query", handleModeQuery)
 
 	// 启动 HTTP 服务 / Start HTTP service
 	go func() {
@@ -120,7 +126,7 @@ func main() {
 	log.Printf("自动打开浏览器: %s", pcURL)
 	openBrowser(pcURL)
 
-	// 启动自动分段定时器 / Start auto-segmentation timer
+	// 启动自动分段定时器（旧逻辑，兼容模式） / Start auto-segmentation timer (old logic, compatibility mode)
 	go segmentTimer()
 
 	// 显示二维码 / Display QR code
@@ -208,26 +214,191 @@ func handleMessage(content string) {
 	// 更新当前输入内容（累加） / Update current input content (accumulate)
 	if content != "" {
 		contentState.UpdateContent(content)
-		
+
 		// 立即发送到PC端底部显示（type: "text"） / Immediately send to PC bottom display (type: "text")
 		// 注意：这里使用广播 / Note: using broadcast，因为 SendToCurrent 只发送给最后连接的客户端 / Note: using broadcast, SendToCurrent only sends to last connected client
 		fullContent := contentState.GetCurrentContent()
 		if fullContent != "" {
 			sseServer.Broadcast(network.Message{
-				Type: "text",
+				Type: network.TypeText,
 				Data: fullContent,
 			})
 		}
 	}
 }
 
-// segmentTimer 自动分段定时器
+// handleSegmentRequest 处理分段请求（由手机端触发）
+// handleSegmentRequest handles segmentation requests (triggered by mobile)
+func handleSegmentRequest(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req struct {
+		Content string `json:"content"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	// 标记为手机控制分段模式 / Mark as mobile-controlled segmentation mode
+	mobileSegmentMode = true
+
+	// 检查内容是否有意义 / Check if content is meaningful
+	if !state.IsContentMeaningful(req.Content) {
+		log.Printf("过滤无意义内容: %q", req.Content)
+		contentState.Clear()
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
+	// 生成卡片 / Add to history cards
+	contentState.AddCard(req.Content)
+
+	// 发送卡片消息给PC端（type: "card"） / Send card message to PC (type: "card")
+	sseServer.Broadcast(network.Message{
+		Type: network.TypeCard,
+		Data: req.Content,
+	})
+
+	// 发送清空输入框信号（type: "clear_input"） / Send clear input signal (type: "clear_input")
+	sseServer.Broadcast(network.Message{
+		Type: network.TypeClearInput,
+		Data: "",
+	})
+
+	// 清空服务端累积的内容 / Clear accumulated content on server
+	contentState.Clear()
+
+	log.Printf("分段（手机控制）: %s", req.Content)
+
+	w.WriteHeader(http.StatusOK)
+}
+
+// handleModeQuery 处理模式查询请求
+func handleModeQuery(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// 获取当前模式 / Get current mode
+	mode := "continuous"
+	if mobileSegmentMode {
+		mode = "single"
+	}
+
+	// 通过 SSE 发送模式同步消息给所有客户端 / Send mode sync via SSE
+	sseServer.Broadcast(network.Message{
+		Type: "mode_sync",
+		Data: mode,
+	})
+	if mode == "single" {
+		log.Printf("模式查询: 当前为单次输入模式（手机控制分段）")
+	} else {
+		log.Printf("模式查询: 当前为连续输入模式（服务端控制分段）")
+	}
+
+	// 返回当前模式 / Return current mode
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{
+		"mode": mode,
+	})
+}
+
+// handleModeChange 处理模式切换请求（由手机端触发）
+// handleModeChange handles mode change requests (triggered by mobile)
+func handleModeChange(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req struct {
+		Mode string `json:"mode"` // "single" or "continuous"
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	// 清空服务端累积的内容 / Clear accumulated content on server
+
+		contentState.Clear()
+
+		log.Printf("模式切换: 清空服务端累积的内容")
+
+	
+
+		// 发送清空输入框信号给电脑端 / Send clear input signal to PC
+
+		sseServer.Broadcast(network.Message{
+
+			Type: network.TypeClearInput,
+
+			Data: "",
+
+		})
+
+		log.Printf("模式切换: 发送清空输入框信号到电脑端")
+
+	
+
+	
+
+		// 更新模式标志 / Update mode flag
+
+		if req.Mode == "single" {
+
+			mobileSegmentMode = true
+
+			log.Printf("模式切换: 切换到单次输入模式（手机控制分段）")
+
+		} else if req.Mode == "continuous" {
+
+			mobileSegmentMode = false
+
+			log.Printf("模式切换: 切换到连续输入模式（服务端控制分段）")
+
+		}
+
+	
+
+		// 发送确认信号给手机端 / Send acknowledgment to mobile
+
+		sseServer.Broadcast(network.Message{
+
+			Type: "mode_ack",
+
+			Data: req.Mode,
+
+		})
+
+		if req.Mode == "single" {
+
+			log.Printf("模式切换: 发送确认信号到手机端 - 单次输入模式")
+
+		} else {
+
+			log.Printf("模式切换: 发送确认信号到手机端 - 连续输入模式")
+
+		}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+// segmentTimer 自动分段定时器（旧逻辑，服务端控制分段）
 func segmentTimer() {
 	ticker := time.NewTicker(1 * time.Second)
 	defer ticker.Stop()
 
 	for range ticker.C {
-		if contentState.ShouldSegment() {
+		// 只在非手机控制模式下才自动分段 / Only auto-segment when not in mobile control mode
+		if !mobileSegmentMode && contentState.ShouldSegment() {
 			content := contentState.GetCurrentContent()
 			if content != "" {
 				// 检查内容是否有意义 / Check if content is meaningful
@@ -238,17 +409,27 @@ func segmentTimer() {
 				}
 
 				// 添加到历史卡片 / Add to history cards
-				contentState.AddCard(content)
+							contentState.AddCard(content)
+				
+							// 发送分段信号给PC端（type: "segment"） / Send segmentation signal to PC (type: "segment")
+							// 注意：这里使用广播 / Note: using broadcast
+							sseServer.Broadcast(network.Message{
+								Type: network.TypeSegment,
+								Data: content,
+							})
+				
+							// 发送模式同步信号给手机端（确保手机端按钮状态正确） / Send mode sync to mobile (ensure mobile button state is correct)
+							mode := "continuous"
+							if mobileSegmentMode {
+								mode = "single"
+							}
+							sseServer.Broadcast(network.Message{
+								Type: "mode_sync",
+								Data: mode,
+							})
 
-				// 发送分段信号给PC端（type: "segment"） / Send segmentation signal to PC (type: "segment")
-				// 注意：这里使用广播 / Note: using broadcast
-				sseServer.Broadcast(network.Message{
-					Type: "segment",
-					Data: content,
-				})
-
-				log.Printf("自动分段: %s", content)
-			}
+							log.Printf("自动分段（服务端控制）: %s", content)
+							log.Printf("自动分段: 发送模式同步信号到手机端 - 连续输入模式")			}
 		}
 	}
 }

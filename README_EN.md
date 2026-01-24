@@ -33,7 +33,10 @@ This project provides implementations in two languages:
 - ✅ **Smart Network Card Recognition** - Auto-detect USB shared, local, and virtual network cards
 - ✅ **Priority Sorting** - Ethernet > USB Shared > WiFi > Virtual
 - ✅ **Real-time Text Sync** - Low-latency sync via SSE
-- ✅ **Auto-segment Management** - Auto-generate cards after 2 seconds of no input
+- ✅ **Dual-mode Segmentation** - Supports single input mode and continuous input mode
+  - **Single Input Mode**: Mobile detects 2 seconds of no input and auto-segments
+  - **Continuous Input Mode**: Server detects 2 seconds of no input and auto-segments
+- ✅ **Mobile Theme Toggle** - Supports light and dark themes, auto-saves user preference
 - ✅ **Easy Operations** - Click to copy, double-click to edit
 - ✅ **Zero Dependencies** - Single executable file, run with double-click
 - ✅ **In-memory Only** - Auto-clear data on exit, no local residue, protects user privacy
@@ -99,8 +102,16 @@ The program will automatically open a browser to display the PC interface.
 
 #### Mobile Interface
 - **Full-screen Input Box**: Supports multi-line input
-- **Auto Line Break**: Optimizes mobile input experience
+- **Auto Line Break**: Optimized for mobile input experience
 - **Status Indicator**: Shows connection status, input status
+- **Segmentation Mode Toggle**:
+  - **Continuous Input** (switch off): Server controls segmentation, suitable for long text input
+  - **Single Input** (switch on): Mobile controls segmentation, suitable for short sentence input
+  - Clears current input content when switching modes
+- **Theme Toggle**:
+  - Supports light and dark themes
+  - Click 🌙/☀️ button in top-right corner to switch
+  - Auto-saves theme preference to local storage
 
 ## ❓ FAQ
 
@@ -363,29 +374,29 @@ go-lang/
 
 ## 📦 Version History
 
-### v1.0.33 (Current Version)
+### v1.1 (Current Version)
+
+**New Features:**
+- ✅ Dual-mode segmentation system (Single Input/Continuous Input)
+- ✅ Mobile theme switching (Light/Dark)
+- ✅ Mobile interface optimization (vertical text, connection status indicator)
+
+**Bug Fixes:**
+- 🐛 Fixed QR code always showing after PC page refresh
+- 🐛 Fixed double segmentation when switching modes
+- 🐛 Fixed mode inconsistency after mobile reconnection
+
+### v1.0.34
 
 **New Features:**
 - ✅ Network card priority optimization (Ethernet > USB Shared > WiFi > Virtual)
 - ✅ Enhanced virtual network card recognition (VMware, VirtualBox, Hyper-V, KVM/QEMU, etc.)
 - ✅ Windows single instance lock fix (auto-cleanup stale locks)
-- ✅ Added debug logs and CORS headers
-- ✅ Firewall configuration tips
-- ✅ Bilingual code comments (Chinese first, English supplement)
-- ✅ Function naming standardization (WebSocket → SSE)
-
-**Code Optimization:**
-- 🧹 Removed unused clipboard module (clipboard functionality implemented by browser)
-- 🧹 Removed unused security module
-- 🧹 Removed unused functions (SendToCurrent, GetUsbShareIp, etc.)
-- 🧹 Cleaned up unused imports
 
 **Bug Fixes:**
 - 🐛 Fixed Windows unable to start after crash
-- 🐛 Fixed USB network card priority too high
-- 🐛 Optimized virtual network card recognition
 
-### v1.0.32
+### v1.0.33
 
 - Initial stable version
 - Basic features complete

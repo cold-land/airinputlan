@@ -1,0 +1,114 @@
+AirInputLan 更新日志 / Changelog
+================================
+
+本文档记录了 AirInputLan 所有版本的更新历史。
+
+This document records the update history of all AirInputLan versions.
+
+
+v1.1 (2026-01-24)
+-----------------
+
+新增功能 / New Features:
+  * 双模式分段系统（单次输入/连续输入）
+    - 单次输入模式：手机端检测 2 秒无输入后自动分段
+    - 连续输入模式：服务端检测 2 秒无输入后自动分段
+    - 模式切换时自动清空输入内容
+    - 模式状态同步机制，确保手机和服务端一致
+  * Dual-mode segmentation system (Single Input/Continuous Input)
+    - Single Input Mode: Mobile detects 2 seconds of no input and auto-segments
+    - Continuous Input Mode: Server detects 2 seconds of no input and auto-segments
+    - Auto-clear input content when switching modes
+    - Mode state synchronization mechanism ensures mobile and server consistency
+
+  * 手机端主题切换
+    - 支持亮色和暗色两种主题
+    - 点击右上角 🌙/☀️ 按钮切换
+    - 自动保存主题偏好到本地存储
+    - 平滑的主题切换动画（0.3s 过渡）
+    - 默认亮色主题
+  * Mobile theme switching
+    - Supports light and dark themes
+    - Click 🌙/☀️ button in top-right corner to switch
+    - Auto-saves theme preference to local storage
+    - Smooth theme transition animation (0.3s transition)
+    - Default light theme
+
+  * 手机端界面优化
+    - 分段模式切换按钮优化（竖向文字显示）
+    - 连接状态指示器（圆点 + 文字）
+    - 主题切换按钮集成到标题栏
+  * Mobile interface optimization
+    - Segmentation mode toggle button optimization (vertical text display)
+    - Connection status indicator (dot + text)
+    - Theme toggle button integrated into header
+
+修复问题 / Bug Fixes:
+  * 修复 PC 端刷新页面后二维码一直显示的问题
+  * 修复模式切换时双重分段的问题
+  * 修复手机重连后模式不一致的问题
+  * 优化按钮状态更新时机（等待服务端确认）
+  * Fixed issue where QR code remains visible after PC page refresh
+  * Fixed double segmentation when switching modes
+  * Fixed mode inconsistency after mobile reconnection
+  * Optimized button state update timing (wait for server confirmation)
+
+代码优化 / Code Optimization:
+  * 优化服务端日志，使其更清晰明确
+  * 优化手机端界面布局，提升用户体验
+  * Optimized server logs for better clarity
+  * Optimized mobile interface layout for better user experience
+
+
+v1.0.34 (2026-01-23)
+-------------------
+
+新增功能 / New Features:
+  * 主题切换功能（明亮/暗色）
+  * 重复字高亮功能
+  * 增强内容过滤（过滤单独标点符号和空格）
+  * Theme switching (Light/Dark)
+  * Duplicate character highlighting
+  * Enhanced content filtering (filter standalone punctuation and spaces)
+
+修复问题 / Bug Fixes:
+  * 修复 UTF-8 字符计数问题
+  * 修复 PC 端刷新页面后二维码一直显示的问题
+  * Fixed UTF-8 character counting issue
+  * Fixed issue where QR code remains visible after PC page refresh
+
+
+v1.0.33
+--------
+
+首次公开版本
+Initial public release
+基础功能完整
+Basic features complete
+
+
+版本说明 / Version Notes
+=======================
+
+版本号规则 / Version Numbering:
+  采用语义化版本控制（Semantic Versioning）：
+  - 主版本号（Major）：不兼容的 API 修改
+  - 次版本号（Minor）：向下兼容的功能性新增
+  - 修订号（Patch）：向下兼容的问题修正
+
+  Uses Semantic Versioning:
+  - Major: Incompatible API changes
+  - Minor: Backwards-compatible functionality additions
+  - Patch: Backwards-compatible bug fixes
+
+发布周期 / Release Cycle:
+  - 主版本（Major）：不定期，重大功能更新
+  - 次版本（Minor）：不定期，新功能添加
+  - 修订版本（Patch）：不定期，Bug 修复
+  - Major: Irregular, major feature updates
+  - Minor: Irregular, new feature additions
+  - Patch: Irregular, bug fixes
+
+查看最新版本 / View Latest Version:
+  最新的版本发布说明请查看 RELEASE_NOTES.md
+  For the latest release notes, please see RELEASE_NOTES.md

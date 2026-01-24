@@ -555,8 +555,8 @@
                 console.log('收到文本消息:', message.data);
                 updateCurrentInput(message.data);
             } else if (message.type === 'segment') {
-                // 收到分段信号：把底部内容变成卡片，清空底部
-                console.log('收到分段信号:', message.data);
+                // 收到分段信号（旧逻辑）：把底部内容变成卡片，清空底部
+                console.log('收到分段信号（旧逻辑）:', message.data);
                 const currentContent = document.getElementById('current-input').textContent;
                 if (currentContent) {
                     // 检查是否只包含空白字符
@@ -566,6 +566,14 @@
                     }
                     updateCurrentInput('');
                 }
+            } else if (message.type === 'card') {
+                // 收到卡片消息（新逻辑）：直接生成卡片（使用服务端发送的内容）
+                console.log('收到卡片消息（新逻辑）:', message.data);
+                addCard(message.data);
+            } else if (message.type === 'clear_input') {
+                // 收到清空输入框信号（新逻辑）：清空底部输入区
+                console.log('收到清空输入框信号');
+                updateCurrentInput('');
             } else if (message.type === 'show_qr') {
                 // 收到二维码显示/隐藏信号
                 const showQR = message.data === 'true';
@@ -575,6 +583,10 @@
                 } else {
                     hideControlPanel();
                 }
+            } else if (message.type === 'connected') {
+                // 收到连接成功消息
+                console.log('收到连接成功消息');
+                hideControlPanel();
             }
         }
 

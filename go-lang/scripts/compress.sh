@@ -82,9 +82,13 @@ main() {
     print_info "开始压缩 dist 目录下的可执行文件..."
     echo ""
     
-    # 查找所有可执行文件
+    # 查找所有可执行文件（排除 .7z 文件）
     local FILES=()
     while IFS= read -r -d '' file; do
+        # 跳过 .7z 文件
+        if [[ "$file" == *.7z ]]; then
+            continue
+        fi
         FILES+=("$file")
     done < <(find dist -type f -print0)
     

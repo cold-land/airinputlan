@@ -11,10 +11,21 @@ import (
 	"time"
 )
 
+// 消息类型常量 / Message type constants
+const (
+	TypeText       = "text"        // 实时输入内容 / Real-time input content
+	TypeSegment    = "segment"     // 分段信号（旧逻辑） / Segmentation signal (old logic)
+	TypeCard       = "card"        // 卡片内容（新逻辑） / Card content (new logic)
+	TypeClearInput = "clear_input" // 清空实时输入框 / Clear real-time input box
+	TypeHeartbeat  = "heartbeat"   // 心跳 / Heartbeat
+	TypeShowQR     = "show_qr"     // 显示/隐藏二维码 / Show/hide QR code
+	TypeConnected  = "connected"   // 连接成功 / Connection success
+)
+
 // Message 表示 SSE 推送的消息结构
 // Message represents an SSE push message structure
 type Message struct {
-	Type string `json:"type"` // "text", "heartbeat"
+	Type string `json:"type"` // "text", "heartbeat", "segment", "card", "clear_input", "show_qr", "mode_query"
 	Data string `json:"data"`
 }
 

@@ -18,7 +18,21 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background: #fff;
+            background: #1a1a1a;
+            color: #ffffff;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        /* 亮色主题 */
+        body.light-theme {
+            background: #ffffff;
+            color: #333333;
+        }
+
+        /* 暗色主题（默认） */
+        body.dark-theme {
+            background: #1a1a1a;
+            color: #ffffff;
         }
 
         #app {
@@ -27,40 +41,226 @@
             height: 100%;
         }
 
-        /* 显控栏 */
+/* 显控栏 */
         .header {
-            padding: 15px;
-            background: #2196F3;
-            color: white;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 12px 16px;
+            background: #2d2d2d;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
             flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            transition: background 0.3s;
+        }
+
+        body.light-theme .header {
+            background: #f5f5f5;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .header-left {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex: 1;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: #cccccc;
+            transition: color 0.3s;
+        }
+
+        body.light-theme .status-indicator {
+            color: #666666;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ff9800;
+            transition: background 0.3s;
+        }
+
+        .status-indicator.connected .status-dot {
+            background: #81c784;
         }
 
         .header h1 {
             font-size: 18px;
             font-weight: 500;
-            margin-bottom: 8px;
+            margin: 0;
+            color: #ffffff;
+            transition: color 0.3s;
+        }
+
+        body.light-theme .header h1 {
+            color: #333333;
         }
 
         .connection-info {
             font-size: 12px;
             opacity: 0.9;
+            color: #cccccc;
+            transition: color 0.3s;
+        }
+
+        body.light-theme .connection-info {
+            color: #666666;
         }
 
         #ip-address, #port {
             margin-right: 10px;
         }
 
+        /* 分段模式切换开关（标题行内） */
+        .segment-mode-toggle {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .mode-label {
+            font-size: 12px;
+            font-weight: 500;
+            color: white;
+            white-space: nowrap;
+            transition: color 0.3s;
+            writing-mode: vertical-rl;
+            text-orientation: upright;
+            letter-spacing: 2px;
+            height: 60px;
+            line-height: 20px;
+        }
+
+        body.light-theme .mode-label {
+            color: #333333;
+        }
+
+        .mode-label-left {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        body.light-theme .mode-label-left {
+            color: rgba(0, 0, 0, 0.5);
+        }
+
+        .mode-label-right {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        body.light-theme .mode-label-right {
+            color: rgba(0, 0, 0, 0.5);
+        }
+
+        .segment-mode-toggle .mode-label.active {
+            color: white;
+            font-weight: 600;
+        }
+
+        body.light-theme .segment-mode-toggle .mode-label.active {
+            color: #333333;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 32px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #4a4a4a;
+            transition: .4s;
+        }
+
+        body.light-theme .slider {
+            background-color: #d0d0d0;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 24px;
+            width: 24px;
+            left: 4px;
+            top: 4px;
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            transition: .4s;
+        }
+
+        body.light-theme .slider:before {
+            background-color: white;
+        }
+
+        input:checked + .slider {
+            background-color: #4CAF50;
+        }
+
+        body.light-theme input:checked + .slider {
+            background-color: #4CAF50;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(28px);
+        }
+
+        .slider.round {
+            border-radius: 32px;
+        }
+
+        .slider.round:before {
+            border-radius: 50%;
+        }
+
         /* 状态提示 */
         #status {
             padding: 10px 15px;
             font-size: 12px;
+            background: #3d3d3d;
+            color: #ff9800;
+            flex-shrink: 0;
+            transition: background 0.3s, color 0.3s;
+            display: none;
+        }
+
+        body.light-theme #status {
             background: #fff3e0;
             color: #e65100;
-            flex-shrink: 0;
         }
 
         #status.connected {
+            background: #2d5a2d;
+            color: #81c784;
+        }
+
+        body.light-theme #status.connected {
             background: #e8f5e9;
             color: #2e7d32;
         }
@@ -76,39 +276,103 @@
         #input-textarea {
             flex: 1;
             width: 100%;
-            border: none;
+            border: 1px solid #3d3d3d;
             padding: 15px;
             font-size: 20px;
             line-height: 1.6;
             resize: none;
+            background: #2d2d2d;
+            color: #ffffff;
             outline: none;
-            background: #fafafa;
             border-radius: 8px;
+            transition: background 0.3s, color 0.3s, border-color 0.3s;
+        }
+
+        body.light-theme #input-textarea {
+            background: #fafafa;
+            color: #333333;
+            border-color: #e0e0e0;
         }
 
         #input-textarea:focus {
-            background: #fff;
-            box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.2);
+            border-color: #4d4d4d;
+            background: #333333;
+        }
+
+        body.light-theme #input-textarea:focus {
+            border-color: #bdbdbd;
+            background: #ffffff;
         }
 
         /* 提示信息 */
         .hint {
             padding: 10px 15px;
             font-size: 12px;
-            color: #999;
+            color: #888888;
             text-align: center;
             flex-shrink: 0;
+            transition: color 0.3s;
+        }
+
+        body.light-theme .hint {
+            color: #999999;
+        }
+
+        /* 主题切换按钮 */
+        .theme-toggle {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 20px;
+            padding: 6px 12px;
+            cursor: pointer;
+            font-size: 16px;
+            color: white;
+            transition: background 0.3s, color 0.3s, border-color 0.3s;
+            white-space: nowrap;
+        }
+
+        body.light-theme .theme-toggle {
+            background: rgba(0, 0, 0, 0.08);
+            border-color: rgba(0, 0, 0, 0.15);
+            color: #333333;
+        }
+
+        .theme-toggle:hover {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        body.light-theme .theme-toggle:hover {
+            background: rgba(0, 0, 0, 0.12);
+            border-color: rgba(0, 0, 0, 0.2);
         }
     </style>
 </head>
-<body>
+<body class="light-theme">
     <div id="app">
         <!-- 显控栏 -->
         <div class="header">
-            <h1>AirInputLan</h1>
-            <div class="connection-info">
-                <span id="ip-address"></span>
-                <span id="port"></span>
+            <div class="header-left">
+                <h1>AirInputLan</h1>
+                <div class="connection-info">
+                    <span id="ip-address"></span>
+                    <span id="port"></span>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="segment-mode-toggle">
+                    <span id="mode-label-left" class="mode-label mode-label-left">连续输入</span>
+                    <label class="switch">
+                        <input type="checkbox" id="segment-mode" checked>
+                        <span class="slider round"></span>
+                    </label>
+                    <span id="mode-label-right" class="mode-label mode-label-right">单次输入</span>
+                </div>
+                <div class="status-indicator" id="status-indicator">
+                    <span class="status-dot"></span>
+                    <span id="status-text">未连接</span>
+                </div>
+                <button id="theme-toggle" class="theme-toggle">🌙</button>
             </div>
         </div>
 
@@ -133,12 +397,16 @@
         let heartbeatInterval = null;
         let reconnectInterval = null;
         let sendTimeout = null; // 防抖定时器
+        let segmentTimeout = null; // 分段定时器
+        let mobileSegmentMode = true; // 手机控制分段模式（默认开启）
 
         // 初始化
         function init() {
             loadConnectionInfo();
             setupTextarea();
             setupEventSource();
+            setupSegmentModeToggle();
+            setupThemeToggle();
         }
 
         // 加载连接信息
@@ -146,6 +414,89 @@
             const url = new URL(window.location.href);
             document.getElementById('ip-address').textContent = url.hostname;
             document.getElementById('port').textContent = url.port || '80';
+        }
+
+        // 设置分段模式切换
+        function setupSegmentModeToggle() {
+            const toggle = document.getElementById('segment-mode');
+
+            // 初始化标签
+            updateModeLabel();
+
+            // 监听 change 事件，但立即恢复按钮状态
+            toggle.addEventListener('change', () => {
+                // 立即恢复按钮到当前状态（等待服务端确认）
+                toggle.checked = mobileSegmentMode;
+
+                // 清除所有定时器
+                if (segmentTimeout) {
+                    clearTimeout(segmentTimeout);
+                    segmentTimeout = null;
+                }
+                if (sendTimeout) {
+                    clearTimeout(sendTimeout);
+                    sendTimeout = null;
+                }
+
+                // 计算新的模式（与当前相反）
+                const newMode = !mobileSegmentMode;
+                console.log('请求切换模式:', newMode ? '单次输入模式（开）' : '连续输入模式（关）');
+
+                // 发送模式切换请求到服务端
+                sendModeChange(newMode);
+
+                // 清空输入框
+                clearTextarea();
+            });
+
+            function updateModeLabel() {
+                const modeLabelLeft = document.getElementById('mode-label-left');
+                const modeLabelRight = document.getElementById('mode-label-right');
+
+                if (modeLabelLeft && modeLabelRight) {
+                    if (mobileSegmentMode) {
+                        // 单次输入模式 - 右侧高亮
+                        modeLabelLeft.classList.remove('active');
+                        modeLabelRight.classList.add('active');
+                    } else {
+                        // 连续输入模式 - 左侧高亮
+                        modeLabelLeft.classList.add('active');
+                        modeLabelRight.classList.remove('active');
+                    }
+                }
+            }
+        }
+
+        // 设置主题切换
+        function setupThemeToggle() {
+            const themeToggle = document.getElementById('theme-toggle');
+            const body = document.body;
+
+            // 从 localStorage 读取保存的主题
+            const savedTheme = localStorage.getItem('airinputlan-theme');
+            if (savedTheme) {
+                body.className = savedTheme;
+                themeToggle.textContent = savedTheme === 'light-theme' ? '🌙' : '☀️';
+            } else {
+                // 默认亮色主题
+                body.className = 'light-theme';
+                themeToggle.textContent = '🌙';
+            }
+
+            // 切换主题
+            themeToggle.addEventListener('click', () => {
+                if (body.classList.contains('light-theme')) {
+                    body.classList.remove('light-theme');
+                    body.classList.add('dark-theme');
+                    themeToggle.textContent = '☀️';
+                    localStorage.setItem('airinputlan-theme', 'dark-theme');
+                } else {
+                    body.classList.remove('dark-theme');
+                    body.classList.add('light-theme');
+                    themeToggle.textContent = '🌙';
+                    localStorage.setItem('airinputlan-theme', 'light-theme');
+                }
+            });
         }
 
         // 设置输入框
@@ -157,7 +508,13 @@
             textarea.addEventListener('input', () => {
                 const content = textarea.value;
 
-                // 清除之前的定时器
+                // 清空分段定时器（仅在手机控制模式下）
+                if (mobileSegmentMode && segmentTimeout) {
+                    clearTimeout(segmentTimeout);
+                    segmentTimeout = null;
+                }
+
+                // 清除之前的防抖定时器
                 if (sendTimeout) {
                     clearTimeout(sendTimeout);
                 }
@@ -178,6 +535,19 @@
                         lastContent = content;
                     }
                 }, 100); // 100ms 防抖
+
+                // 仅在手机控制模式下设置分段定时器（2秒无输入触发）
+                if (mobileSegmentMode && content.trim() !== '') {
+                    segmentTimeout = setTimeout(() => {
+                        // 发送分段请求
+                        sendSegment(content);
+                        // 清空输入框
+                        textarea.value = '';
+                        lastContent = '';
+                        lastSentLength = 0;
+                        segmentTimeout = null;
+                    }, 2000); // 2秒分段
+                }
             });
 
             // 监听光标位置变化，如果不在末尾就自动移回末尾
@@ -222,6 +592,9 @@
                 isConnected = true;
                 updateStatus(true);
                 startHeartbeat();
+                
+                // 连接成功后，主动查询服务端当前模式
+                queryServerMode();
             };
 
             eventSource.onmessage = (event) => {
@@ -284,20 +657,129 @@
             });
         }
 
+        // 发送分段请求
+        function sendSegment(content) {
+            if (!isConnected || !content) {
+                return;
+            }
+
+            console.log('发送分段请求:', content);
+
+            fetch('/api/segment', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    content: content
+                })
+            }).catch(err => {
+                console.error('发送分段失败:', err);
+            });
+        }
+
+        // 发送模式切换请求
+        function sendModeChange(isMobileMode) {
+            if (!isConnected) {
+                return;
+            }
+
+            const mode = isMobileMode ? 'single' : 'continuous';
+            console.log('发送模式切换请求:', mode);
+
+            fetch('/api/mode', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    mode: mode
+                })
+            }).catch(err => {
+                console.error('发送模式切换失败:', err);
+            });
+        }
+
+        // 查询服务端当前模式
+        function queryServerMode() {
+            if (!isConnected) {
+                return;
+            }
+
+            console.log('查询服务端当前模式');
+
+            fetch('/api/mode/query', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            }).then(res => res.json())
+            .then(data => {
+                console.log('收到服务端模式:', data.mode);
+                // 服务端会通过 SSE 发送 mode_sync 消息
+            }).catch(err => {
+                console.error('查询服务端模式失败:', err);
+            });
+        }
+
         // 处理消息
         function handleMessage(message) {
-            // 手机端主要用于发送，暂不需要处理接收消息
+            // 处理模式确认信号
+            if (message.type === 'mode_ack') {
+                const ackMode = message.data;
+                const newMobileSegmentMode = (ackMode === 'single');
+                
+                console.log('收到模式确认:', ackMode, '更新按钮状态');
+                
+                // 更新本地模式
+                mobileSegmentMode = newMobileSegmentMode;
+                
+                // 更新按钮状态
+                const toggle = document.getElementById('segment-mode');
+                if (toggle) {
+                    toggle.checked = mobileSegmentMode;
+                }
+                
+                // 更新模式标签
+                updateModeLabel();
+            }
+            // 处理模式同步（重连时）
+            else if (message.type === 'mode_sync') {
+                const syncMode = message.data;
+                const newMobileSegmentMode = (syncMode === 'single');
+                
+                console.log('收到模式同步:', syncMode, '更新按钮状态');
+                
+                // 更新本地模式
+                mobileSegmentMode = newMobileSegmentMode;
+                
+                // 更新按钮状态
+                const toggle = document.getElementById('segment-mode');
+                if (toggle) {
+                    toggle.checked = mobileSegmentMode;
+                }
+                
+                // 更新模式标签
+                updateModeLabel();
+            }
         }
 
         // 更新状态
         function updateStatus(connected) {
             const status = document.getElementById('status');
+            const statusIndicator = document.getElementById('status-indicator');
+            const statusText = document.getElementById('status-text');
+
             if (connected) {
                 status.textContent = '已连接';
                 status.classList.add('connected');
+                statusIndicator.classList.add('connected');
+                statusText.textContent = '已连接';
             } else {
                 status.textContent = '连接断开，正在重连...';
                 status.classList.remove('connected');
+                statusIndicator.classList.remove('connected');
+                statusText.textContent = '未连接';
             }
         }
 
@@ -349,6 +831,23 @@
 
         // 启动
         init();
+
+        // 在页面关闭前发送分段（仅在手机控制模式下）
+        window.addEventListener('beforeunload', () => {
+            if (!mobileSegmentMode) {
+                return; // 服务端控制模式，不需要发送分段请求
+            }
+
+            const textarea = document.getElementById('input-textarea');
+            const content = textarea.value.trim();
+            if (content !== '') {
+                // 使用 navigator.sendBeacon 确保请求发送
+                const data = JSON.stringify({
+                    content: content
+                });
+                navigator.sendBeacon('/api/segment', new Blob([data], { type: 'application/json' }));
+            }
+        });
     </script>
 </body>
 </html>
