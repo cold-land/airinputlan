@@ -8,6 +8,8 @@ import (
 	"time"
 	"unicode"
 	"unicode/utf8"
+
+	"airinputlan/internal/network"
 )
 
 // ContentState 表示内容状态管理器
@@ -71,7 +73,8 @@ func (cs *ContentState) GetHistoryCards() []string {
 
 // AddCard 将内容添加到历史卡片列表中
 // AddCard adds content to the history card list
-func (cs *ContentState) AddCard(content string) {
+// 返回过滤后的内容 / Returns filtered content
+func (cs *ContentState) AddCard(content string) string {
 	cs.mu.Lock()
 	defer cs.mu.Unlock()
 
@@ -82,7 +85,7 @@ func (cs *ContentState) AddCard(content string) {
 	if !IsContentMeaningful(content) {
 		// 清空当前内容，避免重复触发分段
 		cs.currentContent = ""
-		return
+		return ""
 	}
 
 	// 检查是否需要分段（按字符数计算）
@@ -100,6 +103,8 @@ func (cs *ContentState) AddCard(content string) {
 
 	// 清空当前内容
 	cs.currentContent = ""
+
+	return content
 }
 
 // splitContent 将内容按指定最大长度分割成多个片段
@@ -126,6 +131,8 @@ func CleanLeadingPunctuation(content string) string {
 
 	// 去除开头的 。！？，
 	runes := []rune(content)
+	originalLen := len(runes)
+
 	for len(runes) > 0 {
 		firstChar := runes[0]
 		if firstChar == '。' || firstChar == '！' || firstChar == '？' || firstChar == '，' {
@@ -137,6 +144,11 @@ func CleanLeadingPunctuation(content string) string {
 		} else {
 			break
 		}
+	}
+
+	// 如果确实过滤了标点符号，输出日志
+	if len(runes) != originalLen && len(runes) > 0 {
+		network.LogFormat("过滤", "内容", "服务端", "开头标点已过滤: %s", string(runes))
 	}
 
 	return string(runes)

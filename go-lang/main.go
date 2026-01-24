@@ -294,13 +294,18 @@ func handleSegmentRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 生成卡片 / Add to history cards
-	contentState.AddCard(req.Content)
+	// 生成卡片，获取过滤后的内容 / Add to history cards, get filtered content
+	filteredContent := contentState.AddCard(req.Content)
+	if filteredContent == "" {
+		// 如果过滤后内容为空，跳过发送 / Skip sending if filtered content is empty
+		w.WriteHeader(http.StatusOK)
+		return
+	}
 
 	// 发送卡片消息给PC端（type: "card"） / Send card message to PC (type: "card")
 	sseServer.Broadcast(network.Message{
 		Type: network.TypeCard,
-		Data: req.Content,
+		Data: filteredContent,
 	})
 
 	// 发送清空输入框信号（type: "clear_input"） / Send clear input signal (type: "clear_input")
@@ -312,7 +317,7 @@ func handleSegmentRequest(w http.ResponseWriter, r *http.Request) {
 	// 清空服务端累积的内容 / Clear accumulated content on server
 	contentState.Clear()
 
-	network.LogInfo("收到分段（手机控制）: %s", req.Content)
+	network.LogInfo("收到分段（手机控制）: %s", filteredContent)
 
 	w.WriteHeader(http.StatusOK)
 }
@@ -447,29 +452,33 @@ func segmentTimer() {
 					continue
 				}
 
-				// 添加到历史卡片 / Add to history cards
-							contentState.AddCard(content)
-				
-							// 发送分段信号给PC端（type: "segment"） / Send segmentation signal to PC (type: "segment")
-							// 注意：这里使用广播 / Note: using broadcast
-							sseServer.Broadcast(network.Message{
-								Type: network.TypeSegment,
-								Data: content,
-							})
-				
-							// 发送模式同步信号给手机端（确保手机端按钮状态正确） / Send mode sync to mobile (ensure mobile button state is correct)
-							mode := "continuous"
-							if mobileSegmentMode {
-								mode = "single"
-							}
-							sseServer.Broadcast(network.Message{
-								Type: "mode_sync",
-								Data: mode,
-							})
+				// 添加到历史卡片，获取过滤后的内容 / Add to history cards, get filtered content
+				filteredContent := contentState.AddCard(content)
+				if filteredContent == "" {
+					// 如果过滤后内容为空，跳过发送 / Skip sending if filtered content is empty
+					continue
+				}
 
-							network.LogFormat("处理", "系统", "服务端", "自动分段（服务端控制）: %s", content)
-							network.LogInfo("收到分段（服务端控制）: %s", content)
-							network.LogFormat("发送", "SSE", "服务端 --> 手机端", "发送模式同步信号: 连续输入模式")			}
+				// 发送分段信号给PC端（type: "segment"） / Send segmentation signal to PC (type: "segment")
+				// 注意：这里使用广播 / Note: using broadcast
+				sseServer.Broadcast(network.Message{
+					Type: network.TypeSegment,
+					Data: filteredContent,
+				})
+
+				// 发送模式同步信号给手机端（确保手机端按钮状态正确） / Send mode sync to mobile (ensure mobile button state is correct)
+				mode := "continuous"
+				if mobileSegmentMode {
+					mode = "single"
+				}
+				sseServer.Broadcast(network.Message{
+					Type: "mode_sync",
+					Data: mode,
+				})
+
+				network.LogFormat("处理", "系统", "服务端", "自动分段（服务端控制）: %s", filteredContent)
+				network.LogInfo("收到分段（服务端控制）: %s", filteredContent)
+				network.LogFormat("发送", "SSE", "服务端 --> 手机端", "发送模式同步信号: 连续输入模式")			}
 		}
 	}
 }
