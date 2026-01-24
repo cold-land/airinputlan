@@ -52,6 +52,7 @@ This is AirInputLan v1.1.1 release, optimizing logging system, exit flow, and fi
 - ✅ **中文日志**：所有日志改为中文，更易理解
 
 **修复问题 / Bug Fixes**:
+- 🐛 修复允许多个手机端同时连接的问题
 - 🐛 修复端口绑定竞态条件
 - 🐛 修复前端重连逻辑可能累积定时器的问题
 - 🐛 修复 SSE client panic

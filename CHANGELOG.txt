@@ -38,6 +38,13 @@ v1.1.1 (2026-01-24)
     - Log types: 启动、错误、警告、信息
 
 修复问题 / Bug Fixes:
+  * 修复允许多个手机端同时连接的问题
+    - 限制只允许一个手机端连接
+    - 支持多个 PC 端同时查看手机输入内容
+  * Fixed multiple mobile devices connection issue
+    - Limit to only one mobile device connection
+    - Support multiple PCs viewing mobile input simultaneously
+
   * 修复端口绑定竞态条件
     - 在 Start() 方法中直接尝试绑定端口 5000-5099
     - 消除端口检查和绑定之间的时间窗口

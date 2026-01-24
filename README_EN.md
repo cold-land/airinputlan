@@ -156,13 +156,9 @@ The program will automatically open a browser to display the PC interface.
 
 ### Q5: Does it support multiple devices simultaneously?
 
-**Design Intent:**
-- Does not support multiple devices simultaneously
-- Only allows one mobile device at a time
-
-**Current Status (Known Bug):**
-- Bug exists, allows multiple mobile devices to connect simultaneously
-- Will be fixed in future version to support single device only
+**Design:**
+- Input (Mobile): Only one device allowed
+- Output (PC): Multiple devices allowed (multiple PCs can view mobile input simultaneously)
 
 ## ⚠️ Important Notes
 
@@ -173,15 +169,13 @@ The program will automatically open a browser to display the PC interface.
 - **Firewall** - Need to open firewall port on first use
 - **Antivirus** - Some antivirus may need to add to whitelist
 - **Browser Compatibility** - Mobile supports Chrome, Edge, Safari, Firefox mainstream browsers
-- **QR Code Generation** - Depends on network, uses third-party website API, requires PC to access external network. If PC has no external network connection, you can manually enter IP address and port in mobile browser (e.g., `http://192.168.1.10:5000`)- **Data Security** - In-memory only, data cleared on exit
+- **Data Security** - In-memory only, data cleared on exit
 - **Firewall** - Need to open firewall port on first use
 - **Antivirus** - Some antivirus may need to add to whitelist
 - **Browser Compatibility** - Mobile supports Chrome, Edge, Safari, Firefox mainstream browsers
-- **QR Code Generation** - Depends on network, uses third-party website API, requires PC to access external network
 
 ## 🐛 Known Issues
 
-- **Multi-device Connection Bug** - Current version has bug, allows multiple mobile devices to connect simultaneously (design should support single device only), will be fixed in future version
 - **Lock File Not Cleaned** - After program abnormal crash, lock file may not be cleaned, causing "Program is already running" prompt, program will auto-detect and cleanup stale lock files
 
 ## 🔧 Network Configuration
