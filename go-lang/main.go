@@ -72,12 +72,7 @@ func main() {
 	// 使用第一个 IP（已按优先级排序：以太网 > USB共享网卡 > WiFi） / Use first IP (sorted by priority: Ethernet > USB Shared > WiFi)
 	defaultIP := ips[0].IP
 
-	// 获取可用端口 / Get available port
-	port, err := network.GetAvailablePort()
-	if err != nil {
-			log.Fatalf("端口适配失败: %v", err)
-		}
-		network.LogInfo("服务绑定成功: 0.0.0.0:%d", port)
+	// 显示网卡信息 / Display network interface information
 	fmt.Printf("扫描到 %d 个网卡\n", len(ips))
 	for _, ip := range ips {
 		fmt.Printf("  - IP: %-15s 类型: %-12s 网卡: %s", ip.IP, ip.NicType, ip.IfaceName)
@@ -87,7 +82,6 @@ func main() {
 		fmt.Println()
 	}
 	fmt.Printf("\n默认访问地址: %s\n", defaultIP)
-	fmt.Printf("服务端口: %d\n", port)
 	fmt.Println()
 
 	// 初始化内容状态 / Initialize content state
@@ -103,7 +97,7 @@ func main() {
 	go sseServer.Run()
 
 	// 初始化 HTTP 服务（绑定到 0.0.0.0 以支持所有网卡访问） / Initialize HTTP service (bind to 0.0.0.0 for all interfaces)
-	httpServer = network.NewHttpServer(port, "0.0.0.0")
+	httpServer = network.NewHttpServer(0, "0.0.0.0")
 
 	// 注册路由 / Register routes
 	httpServer.HandleFunc("/", handleIndex) // Auto-detect based on client IP
@@ -112,23 +106,26 @@ func main() {
 	httpServer.HandleFunc("/ws", sseServer.HandleSSE) // Keep /ws for backward compatibility
 	httpServer.HandleFunc("/ws/message", sseServer.HandlePostMessage)
 	httpServer.HandleFunc("/api/ip", network.HandleGetIP(convertIps(ips)))
-	httpServer.HandleFunc("/api/port", network.HandleGetPort(port))
 	httpServer.HandleFunc("/api/segment", handleSegmentRequest)
 	httpServer.HandleFunc("/api/mode", handleModeChange)
 	httpServer.HandleFunc("/api/mode/query", handleModeQuery)
 
-	// 启动 HTTP 服务 / Start HTTP service
-	go func() {
-		network.LogInfo("HTTP 服务启动...")
-		if err := httpServer.Start(); err != nil {
-			if err != http.ErrServerClosed {
-				log.Fatalf("HTTP 服务启动失败: %v", err)
-			}
-		}
-	}()
+	// 启动 HTTP 服务（内部会自动尝试端口绑定） / Start HTTP service (will automatically try to bind ports)
+	network.LogInfo("HTTP 服务启动中...")
+	port, err := httpServer.Start()
+	if err != nil {
+		log.Fatalf("HTTP 服务启动失败: %v", err)
+	}
+
+	// 注册端口 API（需要在端口确定后） / Register port API (after port is determined)
+	httpServer.HandleFunc("/api/port", network.HandleGetPort(port))
 
 	// 等待服务启动 / Wait for service startup
 	time.Sleep(500 * time.Millisecond)
+
+	// 显示端口信息 / Display port information
+	fmt.Printf("服务端口: %d\n", port)
+	fmt.Println()
 
 	// 自动打开浏览器访问电脑端界面 / Auto-open browser to access PC interface
 	pcURL := fmt.Sprintf("http://127.0.0.1:%d/", port)

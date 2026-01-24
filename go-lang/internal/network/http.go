@@ -6,6 +6,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net"
 	"net/http"
 )
 
@@ -35,24 +36,45 @@ func (hs *HttpServer) HandleFunc(pattern string, handler func(http.ResponseWrite
 	hs.mux.HandleFunc(pattern, handler)
 }
 
-// Start 启动 HTTP 服务，阻塞运行直到出错
-// Start starts the HTTP service and blocks until an error occurs
-func (hs *HttpServer) Start() error {
-	addr := fmt.Sprintf("%s:%d", hs.ip, hs.port)
-	LogFormat("启动", "HTTP", "系统", "启动服务，监听地址: %s", addr)
-	LogFormat("提示", "HTTP", "系统", "如果手机无法访问，请检查防火墙和杀毒软件设置")
+// Start 启动 HTTP 服务，从 5000 端口开始尝试绑定，阻塞运行直到出错
+// Start starts the HTTP service, trying to bind from port 5000, and blocks until an error occurs
+func (hs *HttpServer) Start() (int, error) {
+	const (
+		DefaultPortStart = 5000
+		MaxPortTry       = 100
+	)
 	
-	// 创建 http.Server 实例 / Create http.Server instance
-	hs.server = &http.Server{
-		Addr:    addr,
-		Handler: hs.mux,
+	// 从 5000 端口开始尝试绑定
+	for port := DefaultPortStart; port < DefaultPortStart+MaxPortTry; port++ {
+		addr := fmt.Sprintf("%s:%d", hs.ip, port)
+		
+		// 创建 listener 尝试绑定端口
+		listener, err := net.Listen("tcp", addr)
+		if err == nil {
+			// 绑定成功
+			hs.port = port
+			hs.server = &http.Server{
+				Addr:    addr,
+				Handler: hs.mux,
+			}
+			LogFormat("启动", "HTTP", "系统", "服务绑定成功: %s", addr)
+			LogFormat("提示", "HTTP", "系统", "如果手机无法访问，请检查防火墙和杀毒软件设置")
+			
+			// 在 goroutine 中启动服务
+			go func() {
+				if err := hs.server.Serve(listener); err != nil && err != http.ErrServerClosed {
+					LogFormat("错误", "HTTP", "系统", "服务运行错误: %v", err)
+				}
+			}()
+			
+			return port, nil
+		}
 	}
 	
-	err := hs.server.ListenAndServe()
-	if err != nil && err != http.ErrServerClosed {
-		LogFormat("错误", "HTTP", "系统", "服务启动失败: %v", err)
-	}
-	return err
+	// 所有端口都被占用
+	err := fmt.Errorf("端口适配失败：连续 %d 个端口被占用", MaxPortTry)
+	LogFormat("错误", "HTTP", "系统", "%v", err)
+	return 0, err
 }
 
 // Shutdown 优雅关闭 HTTP 服务
