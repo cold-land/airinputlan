@@ -38,3 +38,10 @@ AGENTS.md
 .IFLOW.md
 *.tar.gz
 *.zip
+iflow_project.sh
+ISSUES.md
+BUGFIXES*.md
+CODE_REVIEW_REPORT.md
+frontend-design/
+superpowers-main/
+.iflow/
