@@ -39,8 +39,8 @@ func (hs *HttpServer) HandleFunc(pattern string, handler func(http.ResponseWrite
 // Start starts the HTTP service and blocks until an error occurs
 func (hs *HttpServer) Start() error {
 	addr := fmt.Sprintf("%s:%d", hs.ip, hs.port)
-	fmt.Printf("[HTTP] 启动服务，监听地址: %s\n", addr)
-	fmt.Printf("[HTTP] 如果手机无法访问，请检查防火墙和杀毒软件设置\n")
+	LogFormat("启动", "HTTP", "系统", "启动服务，监听地址: %s", addr)
+	LogFormat("提示", "HTTP", "系统", "如果手机无法访问，请检查防火墙和杀毒软件设置")
 	
 	// 创建 http.Server 实例 / Create http.Server instance
 	hs.server = &http.Server{
@@ -49,8 +49,8 @@ func (hs *HttpServer) Start() error {
 	}
 	
 	err := hs.server.ListenAndServe()
-	if err != nil {
-		fmt.Printf("[HTTP] 服务启动失败: %v\n", err)
+	if err != nil && err != http.ErrServerClosed {
+		LogFormat("错误", "HTTP", "系统", "服务启动失败: %v", err)
 	}
 	return err
 }

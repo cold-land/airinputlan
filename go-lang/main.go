@@ -7,6 +7,7 @@ package main
 import (
 	"embed"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -33,24 +34,30 @@ var (
 	httpServer        *network.HttpServer
 	sseServer         *network.SSEServer
 	mobileSegmentMode bool = true // 是否使用手机控制分段模式（默认单次输入）
+	debugMode         bool
 )
 
 func main() {
-	log.Println("AirInputLan 启动中...")
+	// 解析命令行参数 / Parse command line arguments
+	flag.BoolVar(&debugMode, "debug", false, "启用调试日志")
+	flag.Parse()
+
+	// 初始化日志系统 / Initialize logging system
+	network.InitLogger()
+
+	network.LogInfo("AirInputLan 启动中...")
 	fmt.Println("AirInputLan - 局域网手机输入同步工具")
 	fmt.Println()
 
 	// 单实例检查 / Single instance check
-	lock, err := singleinstance.NewLock("main")
+	_, err := singleinstance.NewLock("main")
 	if err != nil {
 		log.Fatal("错误: ", err)
 		fmt.Println("\n错误: 程序已经在运行中！")
 		fmt.Println("请检查系统托盘或任务管理器。")
 		return
 	}
-	defer lock.Release()
-
-	log.Println("单实例检查通过")
+	network.LogInfo("单实例检查通过")
 
 	// 扫描网卡 / Scan network interfaces
 	ips, err := netif.ScanValidIps()
@@ -68,10 +75,9 @@ func main() {
 	// 获取可用端口 / Get available port
 	port, err := network.GetAvailablePort()
 	if err != nil {
-		log.Fatalf("端口适配失败: %v", err)
-	}
-
-	log.Printf("服务绑定成功: 0.0.0.0:%d", port)
+			log.Fatalf("端口适配失败: %v", err)
+		}
+		network.LogInfo("服务绑定成功: 0.0.0.0:%d", port)
 	fmt.Printf("扫描到 %d 个网卡\n", len(ips))
 	for _, ip := range ips {
 		fmt.Printf("  - IP: %-15s 类型: %-12s 网卡: %s", ip.IP, ip.NicType, ip.IfaceName)
@@ -113,9 +119,11 @@ func main() {
 
 	// 启动 HTTP 服务 / Start HTTP service
 	go func() {
-		log.Println("HTTP 服务启动...")
+		network.LogInfo("HTTP 服务启动...")
 		if err := httpServer.Start(); err != nil {
-			log.Fatalf("HTTP 服务启动失败: %v", err)
+			if err != http.ErrServerClosed {
+				log.Fatalf("HTTP 服务启动失败: %v", err)
+			}
 		}
 	}()
 
@@ -124,7 +132,7 @@ func main() {
 
 	// 自动打开浏览器访问电脑端界面 / Auto-open browser to access PC interface
 	pcURL := fmt.Sprintf("http://127.0.0.1:%d/", port)
-	log.Printf("自动打开浏览器: %s", pcURL)
+	network.LogInfo("自动打开浏览器: %s", pcURL)
 	openBrowser(pcURL)
 
 	// 启动自动分段定时器（旧逻辑，兼容模式） / Start auto-segmentation timer (old logic, compatibility mode)
@@ -145,16 +153,16 @@ func main() {
 func handleIndex(w http.ResponseWriter, r *http.Request) {
 	// 获取客户端 IP / Get client IP
 	clientIP := getClientIP(r)
-	log.Printf("[HTTP] 收到请求: %s from %s", r.URL.Path, clientIP)
+	network.LogFormat("接收", "HTTP", "客户端 --> 服务端", "收到请求: %s from %s", r.URL.Path, clientIP)
 
 	// 判断是否为本地访问 / Determine if local access
 	if isLocalIP(clientIP) {
 		// 本地访问，显示电脑端页面 / Local access, show PC interface
-		log.Printf("[HTTP] 本地访问，显示电脑端页面")
+		network.LogFormat("处理", "HTTP", "服务端", "本地访问，显示电脑端页面")
 		handlePCIndex(w, r)
 	} else {
 		// 远程访问，显示手机端页面 / Remote access, show mobile interface
-		log.Printf("[HTTP] 远程访问，显示手机端页面")
+		network.LogFormat("处理", "HTTP", "服务端", "远程访问，显示手机端页面")
 		handleMobileIndex(w, r)
 	}
 }
@@ -184,10 +192,10 @@ func isLocalIP(ip string) bool {
 
 // handlePCIndex 处理电脑端首页
 func handlePCIndex(w http.ResponseWriter, r *http.Request) {
-	log.Printf("[HTTP] 请求 PC 页面: %s", r.URL.Path)
+	network.LogFormat("接收", "HTTP", "PC端 --> 服务端", "请求 PC 页面: %s", r.URL.Path)
 	content, err := webFS.ReadFile("web/pc/index.html")
 	if err != nil {
-		log.Printf("[HTTP] 读取 PC 页面失败: %v", err)
+		network.LogFormat("错误", "HTTP", "服务端", "读取 PC 页面失败: %v", err)
 		http.Error(w, "Not found", http.StatusNotFound)
 		return
 	}
@@ -198,7 +206,7 @@ func handlePCIndex(w http.ResponseWriter, r *http.Request) {
 
 // handleMobileIndex 处理手机端首页
 func handleMobileIndex(w http.ResponseWriter, r *http.Request) {
-	log.Printf("[HTTP] 请求 Mobile 页面: %s", r.URL.Path)
+	network.LogFormat("接收", "HTTP", "手机端 --> 服务端", "请求 Mobile 页面: %s", r.URL.Path)
 	
 	// 获取客户端 IP
 	clientIP := getClientIP(r)
@@ -217,11 +225,11 @@ func handleMobileIndex(w http.ResponseWriter, r *http.Request) {
 		sseServer.RUnlock()
 		
 		if hasRemoteClient {
-			log.Printf("[HTTP] 拒绝连接：已有手机端连接，IP: %s", clientIP)
+			network.LogFormat("拒绝", "HTTP", "服务端", "拒绝连接：已有手机端连接，IP: %s", clientIP)
 			// 返回错误页面
 			content, err := webFS.ReadFile("web/mobile/error.html")
 			if err != nil {
-				log.Printf("[HTTP] 读取错误页面失败: %v", err)
+				network.LogFormat("错误", "HTTP", "服务端", "读取错误页面失败: %v", err)
 				http.Error(w, "已有手机端连接，请稍后再试", http.StatusServiceUnavailable)
 				return
 			}
@@ -234,7 +242,7 @@ func handleMobileIndex(w http.ResponseWriter, r *http.Request) {
 	
 	content, err := webFS.ReadFile("web/mobile/index.html")
 	if err != nil {
-		log.Printf("[HTTP] 读取 Mobile 页面失败: %v", err)
+		network.LogFormat("错误", "HTTP", "服务端", "读取 Mobile 页面失败: %v", err)
 		http.Error(w, "Not found", http.StatusNotFound)
 		return
 	}
@@ -283,7 +291,7 @@ func handleSegmentRequest(w http.ResponseWriter, r *http.Request) {
 
 	// 检查内容是否有意义 / Check if content is meaningful
 	if !state.IsContentMeaningful(req.Content) {
-		log.Printf("过滤无意义内容: %q", req.Content)
+		network.LogDebug("过滤无意义内容: %q", req.Content)
 		contentState.Clear()
 		w.WriteHeader(http.StatusOK)
 		return
@@ -307,7 +315,7 @@ func handleSegmentRequest(w http.ResponseWriter, r *http.Request) {
 	// 清空服务端累积的内容 / Clear accumulated content on server
 	contentState.Clear()
 
-	log.Printf("分段（手机控制）: %s", req.Content)
+	network.LogInfo("收到分段（手机控制）: %s", req.Content)
 
 	w.WriteHeader(http.StatusOK)
 }
@@ -331,9 +339,9 @@ func handleModeQuery(w http.ResponseWriter, r *http.Request) {
 		Data: mode,
 	})
 	if mode == "single" {
-		log.Printf("模式查询: 当前为单次输入模式（手机控制分段）")
+		network.LogFormat("查询", "HTTP", "手机端 --> 服务端", "当前为单次输入模式（手机控制分段）")
 	} else {
-		log.Printf("模式查询: 当前为连续输入模式（服务端控制分段）")
+		network.LogFormat("查询", "HTTP", "手机端 --> 服务端", "当前为连续输入模式（服务端控制分段）")
 	}
 
 	// 返回当前模式 / Return current mode
@@ -364,7 +372,7 @@ func handleModeChange(w http.ResponseWriter, r *http.Request) {
 
 		contentState.Clear()
 
-		log.Printf("模式切换: 清空服务端累积的内容")
+		network.LogFormat("处理", "系统", "服务端", "清空服务端累积的内容")
 
 	
 
@@ -378,7 +386,7 @@ func handleModeChange(w http.ResponseWriter, r *http.Request) {
 
 		})
 
-		log.Printf("模式切换: 发送清空输入框信号到电脑端")
+		network.LogFormat("发送", "SSE", "服务端 --> PC端", "发送清空输入框信号")
 
 	
 
@@ -390,13 +398,13 @@ func handleModeChange(w http.ResponseWriter, r *http.Request) {
 
 			mobileSegmentMode = true
 
-			log.Printf("模式切换: 切换到单次输入模式（手机控制分段）")
+			network.LogFormat("处理", "系统", "服务端", "切换到单次输入模式（手机控制分段）")
 
 		} else if req.Mode == "continuous" {
 
 			mobileSegmentMode = false
 
-			log.Printf("模式切换: 切换到连续输入模式（服务端控制分段）")
+			network.LogFormat("处理", "系统", "服务端", "切换到连续输入模式（服务端控制分段）")
 
 		}
 
@@ -414,11 +422,11 @@ func handleModeChange(w http.ResponseWriter, r *http.Request) {
 
 		if req.Mode == "single" {
 
-			log.Printf("模式切换: 发送确认信号到手机端 - 单次输入模式")
+			network.LogFormat("发送", "SSE", "服务端 --> 手机端", "发送确认信号: 单次输入模式")
 
 		} else {
 
-			log.Printf("模式切换: 发送确认信号到手机端 - 连续输入模式")
+			network.LogFormat("发送", "SSE", "服务端 --> 手机端", "发送确认信号: 连续输入模式")
 
 		}
 
@@ -437,7 +445,7 @@ func segmentTimer() {
 			if content != "" {
 				// 检查内容是否有意义 / Check if content is meaningful
 				if !state.IsContentMeaningful(content) {
-					log.Printf("过滤无意义内容: %q", content)
+					network.LogDebug("过滤无意义内容: %q", content)
 					contentState.Clear()
 					continue
 				}
@@ -462,8 +470,9 @@ func segmentTimer() {
 								Data: mode,
 							})
 
-							log.Printf("自动分段（服务端控制）: %s", content)
-							log.Printf("自动分段: 发送模式同步信号到手机端 - 连续输入模式")			}
+							network.LogFormat("处理", "系统", "服务端", "自动分段（服务端控制）: %s", content)
+							network.LogInfo("收到分段（服务端控制）: %s", content)
+							network.LogFormat("发送", "SSE", "服务端 --> 手机端", "发送模式同步信号: 连续输入模式")			}
 		}
 	}
 }
@@ -488,21 +497,59 @@ func waitForExit(httpServer *network.HttpServer) {
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 
 	<-sigChan
-	log.Println("正在退出...")
+	network.LogInfo("正在退出...")
+	exitStartTime := time.Now()
 
 	// 清理资源 / Clean up resources
+	network.LogInfo("清理资源...")
 	contentState.Clear()
+	network.LogInfo("资源清理完成，耗时: %v", time.Since(exitStartTime))
+
+	// 关闭所有 SSE 连接 / Close all SSE connections
+	if sseServer != nil {
+		sseCloseStartTime := time.Now()
+		network.LogInfo("开始关闭 SSE 连接...")
+		sseServer.CloseAllClients()
+		network.LogInfo("SSE 连接关闭完成，耗时: %v", time.Since(sseCloseStartTime))
+		
+		// 等待一小段时间，让 HTTP 请求的 context 被取消
+		network.LogInfo("等待 HTTP 请求 context 取消...")
+		time.Sleep(50 * time.Millisecond)
+		network.LogInfo("HTTP 请求 context 取消完成")
+	}
 
 	// 优雅关闭 HTTP 服务 / Gracefully shutdown HTTP service
 	if httpServer != nil {
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancel()
-		if err := httpServer.Shutdown(ctx); err != nil {
+		shutdownStartTime := time.Now()
+		network.LogInfo("开始关闭 HTTP 服务...")
+		
+		// 创建一个通道来接收关闭完成信号
+		shutdownDone := make(chan error, 1)
+		
+		// 在 goroutine 中执行关闭
+		go func() {
+			ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
+			defer cancel()
+			shutdownDone <- httpServer.Shutdown(ctx)
+		}()
+		
+		// 等待关闭完成
+		err := <-shutdownDone
+		shutdownDuration := time.Since(shutdownStartTime)
+		
+		if err != nil && err != http.ErrServerClosed && err != context.DeadlineExceeded {
 			log.Printf("HTTP 服务关闭失败: %v", err)
+		} else if err == http.ErrServerClosed {
+			network.LogInfo("HTTP 服务已正常关闭，耗时: %v", shutdownDuration)
+		} else if err == context.DeadlineExceeded {
+			network.LogInfo("HTTP 服务关闭超时（200ms），强制退出，耗时: %v", shutdownDuration)
+		} else {
+			network.LogInfo("HTTP 服务关闭完成，耗时: %v", shutdownDuration)
 		}
 	}
 
-	log.Println("程序已安全退出")
+	totalDuration := time.Since(exitStartTime)
+	network.LogInfo("程序已安全退出，总耗时: %v", totalDuration)
 	os.Exit(0)
 }
 
@@ -521,7 +568,7 @@ func openBrowser(url string) {
 	}
 
 	if err != nil {
-		log.Printf("无法自动打开浏览器: %v", err)
+		network.LogInfo("无法自动打开浏览器: %v", err)
 		fmt.Printf("\n请手动在浏览器中打开: %s\n", url)
 	}
 }

@@ -5,7 +5,6 @@ package network
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"sync"
 	"time"
@@ -94,6 +93,28 @@ func (s *SSEServer) Run() {
 	}
 }
 
+// CloseAllClients 关闭所有 SSE 客户端连接
+// CloseAllClients closes all SSE client connections
+func (s *SSEServer) CloseAllClients() {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	
+	count := len(s.Clients)
+	LogInfo("开始关闭 %d 个 SSE 连接...", count)
+	
+	for _, client := range s.Clients {
+		client.mu.Lock()
+		if !client.isClosed {
+			client.isClosed = true
+			close(client.Send)
+			close(client.Close)
+		}
+		client.mu.Unlock()
+	}
+	
+	LogInfo("已关闭 %d 个 SSE 连接", count)
+}
+
 // registerClient 将新的客户端连接注册到服务中
 // registerClient registers a new client connection to the service
 func (s *SSEServer) registerClient(client *SSEClient) {
@@ -109,7 +130,7 @@ func (s *SSEServer) registerClient(client *SSEClient) {
 		for _, c := range s.Clients {
 			if !isLocalIP(c.IP) {
 				// 已有手机端连接，拒绝新连接 / Already has mobile connection, reject new connection
-				log.Printf("[Mobile] 拒绝连接：已有手机端连接，IP: %s", client.IP)
+				LogFormat("拒绝", "SSE", "服务端", "拒绝连接：已有手机端连接，IP: %s", client.IP)
 				return
 			}
 		}
@@ -121,12 +142,12 @@ func (s *SSEServer) registerClient(client *SSEClient) {
 	// 判断连接类型 / Determine connection type
 	connType := "Unknown device"
 	if isLocalIP(client.IP) {
-		connType = "PC (local)"
+		connType = "电脑端"
 	} else {
-		connType = "Mobile (remote)"
+		connType = "手机端"
 	}
 
-	log.Printf("[%s] 客户端已连接，当前连接数: %d", connType, len(s.Clients))
+	LogFormat("连接", "SSE", connType+" --> 服务端", "客户端已连接，当前连接数: %d", len(s.Clients))
 
 	// 如果远程设备（手机端）连接，发送信号隐藏二维码 / If remote device (mobile) connects, send signal to hide QR code
 	if isRemote {
@@ -145,7 +166,7 @@ func (s *SSEServer) registerClient(client *SSEClient) {
 			}
 		}
 		if hasRemoteClient {
-			log.Printf("[PC] 检测到已有远程设备连接，隐藏二维码")
+			LogFormat("连接管理", "SSE", "服务端 --> PC端", "检测到已有远程设备连接，隐藏二维码")
 			s.broadcast <- Message{
 				Type: "show_qr",
 				Data: "false",
@@ -166,9 +187,9 @@ func (s *SSEServer) unregisterClient(client *SSEClient) {
 		connType := "Unknown device"
 		isRemote := !isLocalIP(client.IP)
 		if isLocalIP(client.IP) {
-			connType = "PC (local)"
+			connType = "电脑端"
 		} else {
-			connType = "Mobile (remote)"
+			connType = "手机端"
 		}
 
 		client.mu.Lock()
@@ -177,7 +198,7 @@ func (s *SSEServer) unregisterClient(client *SSEClient) {
 			close(client.Send) // 只在未关闭时才关闭
 		}
 		client.mu.Unlock()
-		log.Printf("[%s] 客户端已断开，当前连接数: %d", connType, len(s.Clients))
+		LogFormat("断开", "SSE", connType+" --> 服务端", "客户端已断开，当前连接数: %d", len(s.Clients))
 
 		// 如果远程设备（手机端）断开，检查是否还有其他远程设备 / If remote device (mobile) disconnects, check for other remote devices
 		if isRemote {
@@ -225,7 +246,7 @@ func (s *SSEServer) Broadcast(message Message) {
 func (s *SSEServer) HandleSSE(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		if r := recover(); r != nil {
-			log.Printf("SSE panic 恢复: %v", r)
+			LogDebug("SSE panic 恢复: %v", r)
 		}
 	}()
 
@@ -235,12 +256,12 @@ func (s *SSEServer) HandleSSE(w http.ResponseWriter, r *http.Request) {
 	// 判断连接类型 / Determine connection type
 	connType := "Unknown device"
 	if isLocalIP(clientIP) {
-		connType = "PC (local)"
+		connType = "电脑端"
 	} else {
-		connType = "Mobile (remote)"
+		connType = "手机端"
 	}
 
-	log.Printf("[%s] 收到连接请求，IP: %s", connType, clientIP)
+	LogFormat("接收", "SSE", connType+" --> 服务端", "收到连接请求，IP: %s", clientIP)
 
 	// 如果是远程设备（手机端），检查是否已有其他远程设备连接
 	// If remote device (mobile), check if there are already other remote devices
@@ -256,7 +277,7 @@ func (s *SSEServer) HandleSSE(w http.ResponseWriter, r *http.Request) {
 		s.mu.RUnlock()
 
 		if hasRemoteClient {
-			log.Printf("[Mobile] 拒绝 SSE 连接：已有手机端连接，IP: %s", clientIP)
+			LogFormat("拒绝", "SSE", "服务端", "拒绝 SSE 连接：已有手机端连接，IP: %s", clientIP)
 			// 返回错误状态
 			w.WriteHeader(http.StatusServiceUnavailable)
 			w.Write([]byte("已有手机端连接，请稍后再试"))
@@ -296,7 +317,7 @@ func (s *SSEServer) HandleSSE(w http.ResponseWriter, r *http.Request) {
 	go func() {
 		defer func() {
 			if r := recover(); r != nil {
-				log.Printf("发送协程 panic 恢复: %v", r)
+				LogDebug("发送协程 panic 恢复: %v", r)
 			}
 		}()
 
@@ -367,7 +388,7 @@ func (s *SSEServer) HandlePostMessage(w http.ResponseWriter, r *http.Request) {
 		s.mu.RUnlock()
 
 		if !isConnected {
-			log.Printf("[Mobile] 拒绝 POST 请求：客户端未连接，IP: %s", clientIP)
+			LogFormat("拒绝", "HTTP", "服务端", "拒绝 POST 请求：客户端未连接，IP: %s", clientIP)
 			w.WriteHeader(http.StatusServiceUnavailable)
 			w.Write([]byte("请先连接到服务"))
 			return
