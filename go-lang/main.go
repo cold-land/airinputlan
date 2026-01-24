@@ -16,6 +16,7 @@ import (
 	"os/signal"
 	"runtime"
 	"strings"
+	"sync"
 	"syscall"
 	"time"
 	"context"
@@ -42,6 +43,7 @@ var (
 	httpServer        *network.HttpServer
 	sseServer         *network.SSEServer
 	mobileSegmentMode bool = true // 是否使用手机控制分段模式（默认单次输入）
+	segmentModeMu     sync.RWMutex  // 保护 mobileSegmentMode 的读写锁
 	debugMode         bool
 )
 
@@ -296,7 +298,9 @@ func handleSegmentRequest(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 标记为手机控制分段模式 / Mark as mobile-controlled segmentation mode
+	segmentModeMu.Lock()
 	mobileSegmentMode = true
+	segmentModeMu.Unlock()
 
 	// 检查内容是否有意义 / Check if content is meaningful
 	if !state.IsContentMeaningful(req.Content) {
@@ -343,9 +347,11 @@ func handleModeQuery(w http.ResponseWriter, r *http.Request) {
 
 	// 获取当前模式 / Get current mode
 	mode := "continuous"
+	segmentModeMu.RLock()
 	if mobileSegmentMode {
 		mode = "single"
 	}
+	segmentModeMu.RUnlock()
 
 	// 通过 SSE 发送模式同步消息给所有客户端 / Send mode sync via SSE
 	sseServer.Broadcast(network.Message{
@@ -408,15 +414,71 @@ func handleModeChange(w http.ResponseWriter, r *http.Request) {
 
 		// 更新模式标志 / Update mode flag
 
-		if req.Mode == "single" {
+	
 
-			mobileSegmentMode = true
+	
 
-			network.LogFormat("处理", "系统", "服务端", "切换到单次输入模式（手机控制分段）")
+		
 
-		} else if req.Mode == "continuous" {
+	
 
-			mobileSegmentMode = false
+	
+
+				if req.Mode == "single" {
+
+	
+
+	
+
+					segmentModeMu.Lock()
+
+	
+
+	
+
+					mobileSegmentMode = true
+
+	
+
+	
+
+					segmentModeMu.Unlock()
+
+	
+
+	
+
+					network.LogFormat("处理", "系统", "服务端", "切换到单次输入模式（手机控制分段）")
+
+	
+
+	
+
+		
+
+	
+
+	
+
+				} else if req.Mode == "continuous" {
+
+	
+
+	
+
+					segmentModeMu.Lock()
+
+	
+
+	
+
+					mobileSegmentMode = false
+
+	
+
+	
+
+					segmentModeMu.Unlock()
 
 			network.LogFormat("处理", "系统", "服务端", "切换到连续输入模式（服务端控制分段）")
 
@@ -454,7 +516,10 @@ func segmentTimer() {
 
 	for range ticker.C {
 		// 只在非手机控制模式下才自动分段 / Only auto-segment when not in mobile control mode
-		if !mobileSegmentMode && contentState.ShouldSegment() {
+		segmentModeMu.RLock()
+		shouldAutoSegment := !mobileSegmentMode && contentState.ShouldSegment()
+		segmentModeMu.RUnlock()
+		if shouldAutoSegment {
 			content := contentState.GetCurrentContent()
 			if content != "" {
 				// 检查内容是否有意义 / Check if content is meaningful
@@ -480,9 +545,11 @@ func segmentTimer() {
 
 				// 发送模式同步信号给手机端（确保手机端按钮状态正确） / Send mode sync to mobile (ensure mobile button state is correct)
 				mode := "continuous"
+				segmentModeMu.RLock()
 				if mobileSegmentMode {
 					mode = "single"
 				}
+				segmentModeMu.RUnlock()
 				sseServer.Broadcast(network.Message{
 					Type: "mode_sync",
 					Data: mode,

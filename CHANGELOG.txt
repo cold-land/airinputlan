@@ -6,7 +6,7 @@ AirInputLan 更新日志 / Changelog
 This document records the update history of all AirInputLan versions.
 
 
-v1.1.2 (2026-01-24)
+v1.1.2 (2026-01-25) - Bug修复版本
 -------------------
 
 修复问题 / Bug Fixes:
@@ -19,6 +19,7 @@ v1.1.2 (2026-01-24)
     - 同一手机刷新时允许重新连接
     - 不同手机尝试连接时拒绝
     - 添加 IP 地址判断，避免误判
+  * 修复全局变量 mobileSegmentMode 并发安全问题
   * Fix leading punctuation filtering issue for cards
     - Filter leading Chinese punctuation marks: 。！？，
     - Filter multiple consecutive punctuation marks
@@ -28,6 +29,7 @@ v1.1.2 (2026-01-24)
     - Allow reconnection from same mobile device
     - Reject connection from different mobile device
     - Add IP address check to avoid false rejection
+  * Fix global variable mobileSegmentMode concurrent access issue
 
 
 v1.1.1 (2026-01-24)
