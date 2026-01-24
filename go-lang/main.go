@@ -211,16 +211,21 @@ func handleMobileIndex(w http.ResponseWriter, r *http.Request) {
 	if !isLocalIP(clientIP) {
 		// 远程设备（手机端），检查是否已有其他远程设备连接
 		hasRemoteClient := false
+		isSameIP := false  // 检查是否是同一 IP
+		
 		sseServer.RLock()
 		for _, c := range sseServer.Clients {
 			if !isLocalIP(c.IP) {
 				hasRemoteClient = true
-				break
+				if c.IP == clientIP {
+					isSameIP = true  // 是同一 IP
+				}
 			}
 		}
 		sseServer.RUnlock()
 		
-		if hasRemoteClient {
+		// 如果有远程客户端且不是同一 IP，拒绝连接
+		if hasRemoteClient && !isSameIP {
 			network.LogFormat("拒绝", "HTTP", "服务端", "拒绝连接：已有手机端连接，IP: %s", clientIP)
 			// 返回错误页面
 			content, err := webFS.ReadFile("web/mobile/error.html")
