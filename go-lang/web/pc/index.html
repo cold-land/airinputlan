@@ -361,43 +361,52 @@
             button.textContent = isDark ? '☀️ 切换主题' : '🌙 切换主题';
         }
 
+        // HTML 转义函数，防止 XSS 攻击
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
         // 检测重复字并高亮
         function highlightDuplicates(text) {
             if (!text) return text;
-
+        
+            // 先转义 HTML 特殊字符
+            const escapedText = escapeHtml(text);
+            
             let result = '';
             let i = 0;
-
-            while (i < text.length) {
+        
+            while (i < escapedText.length) {
                 // 检测双字重复
-                if (i + 3 < text.length) {
-                    const twoChars = text.substring(i, i + 2);
-                    const nextTwoChars = text.substring(i + 2, i + 4);
+                if (i + 3 < escapedText.length) {
+                    const twoChars = escapedText.substring(i, i + 2);
+                    const nextTwoChars = escapedText.substring(i + 2, i + 4);
                     if (twoChars === nextTwoChars) {
                         result += `<span class="highlight">${twoChars}${twoChars}</span>`;
                         i += 4;
                         continue;
                     }
                 }
-
+        
                 // 检测单字重复
-                if (i + 1 < text.length) {
-                    const char = text[i];
-                    const nextChar = text[i + 1];
+                if (i + 1 < escapedText.length) {
+                    const char = escapedText[i];
+                    const nextChar = escapedText[i + 1];
                     if (char === nextChar) {
                         result += `<span class="highlight">${char}${char}</span>`;
                         i += 2;
                         continue;
                     }
                 }
-
-                result += text[i];
+        
+                result += escapedText[i];
                 i++;
             }
-
+        
             return result;
         }
-
         // 初始化
         function init() {
             console.log('初始化...');
