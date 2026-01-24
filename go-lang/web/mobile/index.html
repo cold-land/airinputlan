@@ -578,8 +578,16 @@
 
         // 设置 SSE 连接
         function setupEventSource() {
+            // 先清除旧的定时器，防止累积
+            if (reconnectInterval) {
+                clearInterval(reconnectInterval);
+                reconnectInterval = null;
+            }
+
+            // 关闭旧的 SSE 连接
             if (eventSource) {
                 eventSource.close();
+                eventSource = null;
             }
 
             // 清空输入框
