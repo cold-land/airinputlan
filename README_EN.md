@@ -163,19 +163,11 @@ The program will automatically open a browser to display the PC interface.
 ## ⚠️ Important Notes
 
 - **LAN Only** - Does not support cross-subnet or external network connections
-- **LAN Only** - Does not support cross-subnet or external network connections
 - **Single Device Limit** - Only allows one mobile device at a time
 - **Data Security** - In-memory only, data cleared on exit
 - **Firewall** - Need to open firewall port on first use
 - **Antivirus** - Some antivirus may need to add to whitelist
 - **Browser Compatibility** - Mobile supports Chrome, Edge, Safari, Firefox mainstream browsers
-- **Data Security** - In-memory only, data cleared on exit
-- **Firewall** - Need to open firewall port on first use
-- **Antivirus** - Some antivirus may need to add to whitelist
-- **Browser Compatibility** - Mobile supports Chrome, Edge, Safari, Firefox mainstream browsers
-
-## 🐛 Known Issues
-
 - **Lock File Not Cleaned** - After program abnormal crash, lock file may not be cleaned, causing "Program is already running" prompt, program will auto-detect and cleanup stale lock files
 
 ## 🔧 Network Configuration
@@ -363,7 +355,23 @@ go-lang/
 
 ## 📦 Version History
 
-### v1.1 (Current Version)
+### v1.1.1 (Current Version)
+
+**New Features:**
+- ✅ No internet connection needed (QR code generated locally, removed external API dependency)
+- ✅ Fast exit optimization (Exit time reduced from 1-2s to ~250ms)
+- ✅ Logging system optimization (All logs changed to Chinese for better readability)
+
+**Bug Fixes:**
+- 🐛 Fixed multiple mobile devices connection issue
+- 🐛 Fixed port binding race condition
+- 🐛 Fixed frontend reconnection logic accumulating timers
+- 🐛 Fixed SSE client panic
+- 🐛 Fixed input length limit (calculated by character count)
+- 🐛 Fixed PC end XSS security vulnerability
+- 🐛 Fixed Windows single instance lock invalid issue
+
+### v1.1
 
 **New Features:**
 - ✅ Dual-mode segmentation system (Single Input/Continuous Input)
