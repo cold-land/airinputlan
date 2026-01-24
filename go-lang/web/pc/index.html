@@ -347,6 +347,15 @@
     </div>
 
     <script>
+        // 全局错误处理
+        window.addEventListener('error', (event) => {
+            console.error('全局错误:', event.error);
+        });
+
+        window.addEventListener('unhandledrejection', (event) => {
+            console.error('未处理的 Promise 拒绝:', event.reason);
+        });
+
         // 状态
         let isConnected = false;
         let eventSource = null;
