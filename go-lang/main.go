@@ -17,6 +17,7 @@ import (
 	"strings"
 	"syscall"
 	"time"
+	"context"
 
 	"airinputlan/internal/netif"
 	"airinputlan/internal/network"
@@ -136,8 +137,8 @@ func main() {
 	fmt.Printf("二维码文本: %s\n", qrData["text"])
 	fmt.Println()
 
-	// 等待退出信号 / Wait for exit signal / Wait for exit signal
-	waitForExit()
+	// 等待退出信号 / Wait for exit signal
+	waitForExit(httpServer)
 }
 
 // handleIndex 根据访问 IP 自动判断显示哪个页面
@@ -481,7 +482,8 @@ func convertIps(ips []netif.IpInfo) []interface{} {
 }
 
 // waitForExit 等待退出信号
-func waitForExit() {
+// waitForExit waits for exit signal
+func waitForExit(httpServer *network.HttpServer) {
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 
@@ -490,8 +492,17 @@ func waitForExit() {
 
 	// 清理资源 / Clean up resources
 	contentState.Clear()
-	log.Println("程序已安全退出")
 
+	// 优雅关闭 HTTP 服务 / Gracefully shutdown HTTP service
+	if httpServer != nil {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		if err := httpServer.Shutdown(ctx); err != nil {
+			log.Printf("HTTP 服务关闭失败: %v", err)
+		}
+	}
+
+	log.Println("程序已安全退出")
 	os.Exit(0)
 }
 

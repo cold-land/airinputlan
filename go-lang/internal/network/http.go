@@ -3,6 +3,7 @@
 package network
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -11,9 +12,10 @@ import (
 // HttpServer 表示 HTTP 服务实例
 // HttpServer represents an HTTP service instance
 type HttpServer struct {
-	port int
-	ip   string
-	mux  *http.ServeMux
+	port   int
+	ip     string
+	mux    *http.ServeMux
+	server *http.Server
 }
 
 // NewHttpServer 创建并返回一个新的 HTTP 服务实例
@@ -39,11 +41,27 @@ func (hs *HttpServer) Start() error {
 	addr := fmt.Sprintf("%s:%d", hs.ip, hs.port)
 	fmt.Printf("[HTTP] 启动服务，监听地址: %s\n", addr)
 	fmt.Printf("[HTTP] 如果手机无法访问，请检查防火墙和杀毒软件设置\n")
-	err := http.ListenAndServe(addr, hs.mux)
+	
+	// 创建 http.Server 实例 / Create http.Server instance
+	hs.server = &http.Server{
+		Addr:    addr,
+		Handler: hs.mux,
+	}
+	
+	err := hs.server.ListenAndServe()
 	if err != nil {
 		fmt.Printf("[HTTP] 服务启动失败: %v\n", err)
 	}
 	return err
+}
+
+// Shutdown 优雅关闭 HTTP 服务
+// Shutdown gracefully shuts down the HTTP service
+func (hs *HttpServer) Shutdown(ctx context.Context) error {
+	if hs.server != nil {
+		return hs.server.Shutdown(ctx)
+	}
+	return nil
 }
 
 // HandleGetIP 返回一个处理函数，用于响应获取 IP 列表的请求
