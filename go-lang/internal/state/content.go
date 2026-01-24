@@ -78,8 +78,8 @@ func (cs *ContentState) AddCard(content string) {
 		return
 	}
 
-	// 检查是否需要分段
-	if len(content) > cs.maxCardLength {
+	// 检查是否需要分段（按字符数计算）
+	if utf8.RuneCountInString(content) > cs.maxCardLength {
 		segments := cs.splitContent(content, cs.maxCardLength)
 		cs.historyCards = append(cs.historyCards, segments...)
 	} else {
@@ -99,12 +99,14 @@ func (cs *ContentState) AddCard(content string) {
 // splitContent splits content into multiple segments by specified maximum length
 func (cs *ContentState) splitContent(content string, maxLength int) []string {
 	var segments []string
-	for len(content) > maxLength {
-		segments = append(segments, content[:maxLength])
-		content = content[maxLength:]
+	// 按字符数（rune count）计算长度，而不是字节长度
+	runes := []rune(content)
+	for len(runes) > maxLength {
+		segments = append(segments, string(runes[:maxLength]))
+		runes = runes[maxLength:]
 	}
-	if len(content) > 0 {
-		segments = append(segments, content)
+	if len(runes) > 0 {
+		segments = append(segments, string(runes))
 	}
 	return segments
 }

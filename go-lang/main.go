@@ -85,7 +85,7 @@ func main() {
 	fmt.Println()
 
 	// 初始化内容状态 / Initialize content state
-	contentState = state.NewContentState(2*time.Second, 50, 500)
+	contentState = state.NewContentState(2*time.Second, 50, 1000)
 	//contentState = state.NewContentState(6*time.Second, 1000, 500)
 
 	// 清空之前的内容（防止重启后保留旧内容） / Clear previous content (prevent old content retention)

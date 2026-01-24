@@ -663,6 +663,12 @@
                 return;
             }
 
+            // 只在单次输入模式下限制长度为 500 个字符
+            if (mobileSegmentMode && content.length > 500) {
+                console.log('警告：单次输入模式下，单段内容超过 500 字符，已截断');
+                content = content.substring(0, 500);
+            }
+
             console.log('发送分段请求:', content);
 
             fetch('/api/segment', {
