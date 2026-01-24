@@ -355,7 +355,24 @@ go-lang/
 
 ## 📦 Version History
 
-### v1.1.1 (Current Version)
+### v1.1.2 (Current Version)
+
+**New Features:**
+- ✅ Define constants to replace magic numbers
+- ✅ Add frontend global error handling
+- ✅ Add frontend loading state display
+
+**Bug Fixes:**
+- 🐛 Fixed HTTP service Listener resource leak
+- 🐛 Fixed file lock release failure issue
+- 🐛 Fixed frontend timer leak risk
+- 🐛 Fixed mobile connection check logic, supports same device refresh reconnection
+- 🐛 Fixed card leading punctuation filtering issue
+- 🐛 Fixed PC end XSS security vulnerability
+- 🐛 Fixed global variable mobileSegmentMode concurrency safety issue
+- 🐛 Fixed SSE client connection management defect
+
+### v1.1.1
 
 **New Features:**
 - ✅ No internet connection needed (QR code generated locally, removed external API dependency)
@@ -382,21 +399,6 @@ go-lang/
 - 🐛 Fixed QR code always showing after PC page refresh
 - 🐛 Fixed double segmentation when switching modes
 - 🐛 Fixed mode inconsistency after mobile reconnection
-
-### v1.0.34
-
-**New Features:**
-- ✅ Network card priority optimization (Ethernet > USB Shared > WiFi > Virtual)
-- ✅ Enhanced virtual network card recognition (VMware, VirtualBox, Hyper-V, KVM/QEMU, etc.)
-- ✅ Windows single instance lock fix (auto-cleanup stale locks)
-
-**Bug Fixes:**
-- 🐛 Fixed Windows unable to start after crash
-
-### v1.0.33
-
-- Initial stable version
-- Basic features complete
 
 ## 📄 License
 
