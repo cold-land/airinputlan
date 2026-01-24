@@ -369,6 +369,7 @@
         }
         
         // 检测重复字并高亮
+        // 注意：此函数使用 innerHTML 插入内容，但所有用户输入都已通过 escapeHtml() 转义
         function highlightDuplicates(text) {
             if (!text) return text;
         
@@ -450,21 +451,38 @@
             if (ips && ips.length > 0) {
                 if (ips.length === 1) {
                     // 只有一个IP，直接显示
-                    container.innerHTML = `<strong>IP:</strong> ${ips[0].ip}`;
+                    container.innerHTML = '';
+                    const strong = document.createElement('strong');
+                    strong.textContent = 'IP: ';
+                    container.appendChild(strong);
+                    const text = document.createTextNode(ips[0].ip);
+                    container.appendChild(text);
                 } else {
                     // 有多个IP，显示所有IP供选择
-                    let html = '<div style="margin-bottom: 10px;"><strong>检测到多个可用网络，请选择一个：</strong></div>';
-                    html += '<select id="ip-select" style="width: 100%; padding: 8px; font-size: 14px;">';
+                    const div = document.createElement('div');
+                    div.style.marginBottom = '10px';
+                    const strong = document.createElement('strong');
+                    strong.textContent = '检测到多个可用网络，请选择一个：';
+                    div.appendChild(strong);
+                    container.appendChild(div);
+                    
+                    const select = document.createElement('select');
+                    select.id = 'ip-select';
+                    select.style.width = '100%';
+                    select.style.padding = '8px';
+                    select.style.fontSize = '14px';
                     
                     // 优先显示第一个IP（已按优先级排序：以太网 > USB共享网卡 > WiFi）
                     ips.forEach((ip, index) => {
-                        const isSelected = index === 0 ? 'selected' : '';
-                        const label = `${ip.ip} (${ip.nicType})`;
-                        html += `<option value="${ip.ip}" ${isSelected}>${label}</option>`;
+                        const option = document.createElement('option');
+                        option.value = ip.ip;
+                        option.selected = index === 0;
+                        const label = document.createTextNode(`${ip.ip} (${ip.nicType})`);
+                        option.appendChild(label);
+                        select.appendChild(option);
                     });
                     
-                    html += '</select>';
-                    container.innerHTML = html;
+                    container.appendChild(select);
                     
                     // 监听IP选择变化
                     document.getElementById('ip-select').addEventListener('change', function() {
@@ -480,7 +498,13 @@
 
         // 显示端口
         function displayPort(port) {
-            document.getElementById('port-info').innerHTML = `<strong>端口:</strong> ${port}`;
+            const portInfo = document.getElementById('port-info');
+            portInfo.innerHTML = '';
+            const strong = document.createElement('strong');
+            strong.textContent = '端口: ';
+            portInfo.appendChild(strong);
+            const text = document.createTextNode(port);
+            portInfo.appendChild(text);
         }
 
         // 生成二维码
