@@ -65,7 +65,7 @@ func (hs *HttpServer) Start() (int, error) {
 			// 在 goroutine 中启动服务
 			go func() {
 				if err := hs.server.Serve(listener); err != nil && err != http.ErrServerClosed {
-					LogFormat("错误", "HTTP", "系统", "服务运行错误: %v", err)
+					LogFormat("错误", "HTTP", "系统", "服务运行错误 (端口 %d): %v", hs.port, err)
 				}
 			}()
 			
