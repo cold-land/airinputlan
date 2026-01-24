@@ -6,18 +6,101 @@ AirInputLan 更新日志 / Changelog
 This document records the update history of all AirInputLan versions.
 
 
-### v1.1.2 (2026-01-25) - Bug修复版本
-- 修复 HTTP 服务 Listener 资源泄漏问题
-- 修复文件锁释放失败时错误处理不完善的问题
-- 修复前端定时器泄漏风险
-- 修复手机端连接检查逻辑，支持同设备刷新重连
-- 修复卡片开头标点过滤问题，过滤中文标点和标点后空白字符
-- 修复 PC 端网页 XSS 安全漏洞
-- 修复全局变量 mobileSegmentMode 并发安全问题
-- 修复 SSE 客户端连接管理缺陷，避免部分注册后再拒绝
-- 优化：定义常量替代魔法数字
-- 优化：添加前端全局错误处理
-- 优化：添加前端加载状态显示
+v1.1.2 (2026-01-25)
+-------------------
+
+修复问题 / Bug Fixes:
+  * 修复 HTTP 服务 Listener 资源泄漏问题
+    - 在 HttpServer 结构体中添加 listener 字段
+    - 在 Start() 方法中保存 listener 引用
+    - 在 Shutdown() 方法中正确关闭 listener
+  * Fixed HTTP service Listener resource leak
+    - Add listener field to HttpServer struct
+    - Save listener reference in Start() method
+    - Properly close listener in Shutdown() method
+
+  * 修复文件锁释放失败时错误处理不完善的问题
+    - 改进 unlockFileUnix() 错误处理
+    - 改进 l.file.Close() 错误处理
+    - 改进 os.Remove() 错误处理
+  * Fixed file lock release error handling
+    - Improve unlockFileUnix() error handling
+    - Improve l.file.Close() error handling
+    - Improve os.Remove() error handling
+
+  * 修复前端定时器泄漏风险
+    - 添加 clearAllTimers() 函数统一管理定时器
+    - 在 setupEventSource() 时清除旧定时器
+    - 在页面卸载时清除所有定时器
+  * Fixed frontend timer leak risk
+    - Add clearAllTimers() function to manage timers
+    - Clear old timers in setupEventSource()
+    - Clear all timers on page unload
+
+  * 修复手机端连接检查逻辑，支持同设备刷新重连
+    - 添加 IP 地址判断
+    - 同一 IP 地址的设备允许重新连接
+    - 不同 IP 地址的设备拒绝连接
+  * Fixed mobile connection check logic, supports same device refresh reconnection
+    - Add IP address check
+    - Allow reconnection from same IP address
+    - Reject connection from different IP address
+
+  * 修复卡片开头标点过滤问题
+    - 过滤开头的中文标点符号：。！？，
+    - 过滤标点符号后面的空白字符
+  * Fixed card leading punctuation filtering issue
+    - Filter leading Chinese punctuation marks: 。！？，
+    - Filter whitespace after punctuation marks
+
+  * 修复 PC 端网页 XSS 安全漏洞
+    - 使用 textContent 替代 innerHTML
+    - 防止恶意脚本注入
+  * Fixed PC web page XSS security vulnerability
+    - Use textContent instead of innerHTML
+    - Prevent malicious script injection
+
+  * 修复全局变量 mobileSegmentMode 并发安全问题
+    - 添加 sync.RWMutex 保护并发访问
+    - 所有读写操作都使用锁保护
+  * Fixed global variable mobileSegmentMode concurrency safety issue
+    - Add sync.RWMutex to protect concurrent access
+    - All read/write operations use lock protection
+
+  * 修复 SSE 客户端连接管理缺陷
+    - 在 HandleSSE 中完成所有检查后再注册
+    - 避免部分注册后再拒绝
+  * Fixed SSE client connection management defect
+    - Complete all checks before registration in HandleSSE
+    - Avoid partial registration before rejection
+
+代码优化 / Code Optimization:
+  * 定义常量替代魔法数字
+    - ServiceStartupDelay: 500ms
+    - HeartbeatInterval: 15s
+    - DefaultSegmentInterval: 2s
+    - DefaultMaxCardCount: 50
+    - DefaultMaxCardLength: 1000
+  * Defined constants to replace magic numbers
+    - ServiceStartupDelay: 500ms
+    - HeartbeatInterval: 15s
+    - DefaultSegmentInterval: 2s
+    - DefaultMaxCardCount: 50
+    - DefaultMaxCardLength: 1000
+
+  * 添加前端全局错误处理
+    - 添加 error 事件监听器
+    - 添加 unhandledrejection 事件监听器
+  * Added frontend global error handling
+    - Add error event listener
+    - Add unhandledrejection event listener
+
+  * 添加前端加载状态显示
+    - 加载中显示"加载中..."
+    - 加载失败显示"加载失败"
+  * Added frontend loading state display
+    - Show "加载中..." during loading
+    - Show "加载失败" on load failure
 
 
 v1.1.1 (2026-01-24)

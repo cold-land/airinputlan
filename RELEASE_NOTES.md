@@ -2,9 +2,9 @@
 
 ## 🎉 新版本发布 / New Release
 
-这是 AirInputLan v1.1.2 版本，修复了卡片开头标点符号的问题。
+这是 AirInputLan v1.1.2 版本，修复了多个安全和稳定性问题。
 
-This is AirInputLan v1.1.2 release, fixing the issue of cards starting with punctuation marks.
+This is AirInputLan v1.1.2 release, fixing multiple security and stability issues.
 
 ## ⚠️ 注意事项 / Important Notes
 
@@ -44,29 +44,37 @@ This is AirInputLan v1.1.2 release, fixing the issue of cards starting with punc
 
 ## ✨ 新功能 / New Features
 
-### v1.1.2 (2026-01-24)
+### v1.1.2 (2026-01-25)
 
 **修复问题 / Bug Fixes**:
 - 🐛 修复卡片开头标点过滤问题
   - 过滤开头的中文标点符号：。！？，
-  - 过滤多个连续的标点符号
   - 过滤标点符号后面的空白字符
-- 🐛 修复 PC 端网页 XSS 安全问题
-- 🐛 修复手机端连接检查逻辑
-  - 同一手机刷新时允许重新连接
-  - 不同手机尝试连接时拒绝
-  - 添加 IP 地址判断，避免误判
 - 🐛 修复 HTTP 服务 Listener 资源泄漏
   - 确保程序关闭时正确释放 TCP 端口
   - 避免频繁启动/停止时出现端口被占用的错误
 - 🐛 修复文件锁释放失败问题
   - 改进错误处理逻辑，确保锁文件状态一致
-  - 关闭文件失败时不删除锁文件，避免状态不一致
 - 🐛 修复前端定时器泄漏风险
   - 添加 clearAllTimers() 函数统一管理定时器
   - 在页面卸载时清除所有定时器，防止内存泄漏
+- 🐛 修复手机端连接检查逻辑
+  - 同一手机刷新时允许重新连接
+  - 不同手机尝试连接时拒绝
+  - 添加 IP 地址判断，避免误判
+- 🐛 修复 PC 端网页 XSS 安全漏洞
+  - 使用 textContent 替代 innerHTML
+  - 防止恶意脚本注入
 - 🐛 修复全局变量 mobileSegmentMode 并发安全问题
-- 🐛 修复 SSE 客户端连接管理缺陷，避免部分注册后再拒绝
+  - 添加 sync.RWMutex 保护并发访问
+- 🐛 修复 SSE 客户端连接管理缺陷
+  - 在 HandleSSE 中完成所有检查后再注册
+  - 避免部分注册后再拒绝
+
+**优化 / Optimizations**:
+- ✨ 定义常量替代魔法数字
+- ✨ 添加前端全局错误处理
+- ✨ 添加前端加载状态显示
 
 ### v1.1.1 (2026-01-24)
 
