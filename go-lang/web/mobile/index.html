@@ -576,13 +576,30 @@
             });
         }
 
-        // 设置 SSE 连接
-        function setupEventSource() {
-            // 先清除旧的定时器，防止累积
+        // 清除所有定时器
+        function clearAllTimers() {
+            if (heartbeatInterval) {
+                clearInterval(heartbeatInterval);
+                heartbeatInterval = null;
+            }
             if (reconnectInterval) {
                 clearInterval(reconnectInterval);
                 reconnectInterval = null;
             }
+            if (sendTimeout) {
+                clearTimeout(sendTimeout);
+                sendTimeout = null;
+            }
+            if (segmentTimeout) {
+                clearTimeout(segmentTimeout);
+                segmentTimeout = null;
+            }
+        }
+
+        // 设置 SSE 连接
+        function setupEventSource() {
+            // 清除所有定时器，防止累积
+            clearAllTimers();
 
             // 关闭旧的 SSE 连接
             if (eventSource) {
@@ -848,6 +865,9 @@
 
         // 在页面关闭前发送分段（仅在手机控制模式下）
         window.addEventListener('beforeunload', () => {
+            // 清除所有定时器
+            clearAllTimers();
+
             if (!mobileSegmentMode) {
                 return; // 服务端控制模式，不需要发送分段请求
             }
