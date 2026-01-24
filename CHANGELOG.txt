@@ -6,6 +6,85 @@ AirInputLan 更新日志 / Changelog
 This document records the update history of all AirInputLan versions.
 
 
+v1.1.1 (2026-01-24)
+-------------------
+
+用户体验改进 / User Experience Improvements:
+  * 无需互联网连接（二维码本地生成，移除外部 API 依赖）
+    - 使用 QRCode.js 库在浏览器端生成二维码
+    - 不再依赖 api.qrserver.com 外部服务
+    - 离线环境下也能正常使用
+  * No internet connection needed (QR code generated locally)
+    - Use QRCode.js library to generate QR code in browser
+    - No longer depends on api.qrserver.com external service
+    - Works properly in offline environments
+
+  * 快速退出优化（程序退出时间从 1-2 秒优化到约 250ms）
+    - 优化 HTTP 服务优雅关闭逻辑
+    - 添加 --debug 参数用于调试
+    - 退出时显示详细日志信息
+  * Fast exit optimization (Exit time reduced from 1-2s to ~250ms)
+    - Optimize HTTP service graceful shutdown logic
+    - Add --debug parameter for debugging
+    - Show detailed log information on exit
+
+  * 日志系统优化（所有日志改为中文，更易理解）
+    - 统一日志格式：[类型][模块][操作] 消息
+    - 中文日志：启动、错误、警告、信息
+    - 日志类型：启动、错误、警告、信息
+  * Logging system optimization (All logs changed to Chinese for better readability)
+    - Unified log format: [Type][Module][Operation] Message
+    - Chinese logs: 启动、错误、警告、信息
+    - Log types: 启动、错误、警告、信息
+
+修复问题 / Bug Fixes:
+  * 修复端口绑定竞态条件
+    - 在 Start() 方法中直接尝试绑定端口 5000-5099
+    - 消除端口检查和绑定之间的时间窗口
+    - 避免其他进程占用端口
+  * Fixed port binding race condition
+    - Try binding ports 5000-5099 directly in Start() method
+    - Eliminate time window between port check and binding
+    - Avoid other processes seizing the port
+
+  * 修复前端重连逻辑可能累积定时器的问题
+    - 在创建新的重连定时器前清除旧的定时器
+    - 避免多个定时器同时运行
+    - 防止内存泄漏
+  * Fixed frontend reconnection logic accumulating timers
+    - Clear old reconnection timer before creating new one
+    - Avoid multiple timers running simultaneously
+    - Prevent memory leak
+
+  * 修复 SSE client panic
+    - 添加 isClosed 标志检查
+    - 避免向已关闭的连接发送消息
+  * Fixed SSE client panic
+    - Add isClosed flag check
+    - Avoid sending messages to closed connections
+
+  * 修复输入长度限制（按字符数计算）
+    - 将输入长度限制从 500 字符改为 1000 字符
+    - 确保能容纳约 500 个汉字
+  * Fixed input length limit (calculated by character count)
+    - Change input length limit from 500 to 1000 characters
+    - Ensure it can accommodate about 500 Chinese characters
+
+  * 修复 PC 端 XSS 安全漏洞
+    - 使用 textContent 替代 innerHTML
+    - 防止恶意脚本注入
+  * Fixed PC end XSS security vulnerability
+    - Use textContent instead of innerHTML
+    - Prevent malicious script injection
+
+  * 修复 Windows 单实例锁无效问题
+    - 改进 Windows 锁实现
+    - 自动清理过期锁文件
+  * Fixed Windows single instance lock invalid issue
+    - Improve Windows lock implementation
+    - Auto-cleanup expired lock files
+
+
 v1.1 (2026-01-24)
 -----------------
 

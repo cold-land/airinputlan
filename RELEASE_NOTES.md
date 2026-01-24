@@ -1,10 +1,10 @@
-# AirInputLan v1.1
+# AirInputLan v1.1.1
 
 ## 🎉 新版本发布 / New Release
 
-这是 AirInputLan v1.1 版本，新增了双模式分段系统和手机端主题切换功能。
+这是 AirInputLan v1.1.1 版本，优化了日志系统、退出流程，并修复了多个 bug。
 
-This is AirInputLan v1.1 release, adding dual-mode segmentation system and mobile theme switching features.
+This is AirInputLan v1.1.1 release, optimizing logging system, exit flow, and fixing multiple bugs.
 
 ## ⚠️ 注意事项 / Important Notes
 
@@ -13,7 +13,7 @@ This is AirInputLan v1.1 release, adding dual-mode segmentation system and mobil
 - 如果双击运行，程序会在后台运行，不会显示任何窗口
 - 请使用以下命令运行：
   ```bash
-  chmod +x AirInputLan-*
+  chmod +x AirInputLan*
   ./AirInputLan-x86_64-linux  # Linux
   ./AirInputLan-x86_64-macos   # macOS Intel
   ./AirInputLan-arm64-macos    # macOS Apple Silicon
@@ -23,7 +23,6 @@ This is AirInputLan v1.1 release, adding dual-mode segmentation system and mobil
 **其他注意事项**：
 - Windows：首次运行会弹出防火墙提示，点击"允许"
 - 手机和电脑必须在同一个局域网内
-- **二维码生成依赖网络**：如果电脑没有公网连接，可以手动在手机浏览器输入 IP 地址和端口
 - macOS 版本未使用 UPX 压缩，避免被 Gatekeeper 杀掉
 
 **macOS and Linux Users Please Note**:
@@ -31,7 +30,7 @@ This is AirInputLan v1.1 release, adding dual-mode segmentation system and mobil
 - If run by double-click, program will run in background without any window
 - Please use the following command to run:
   ```bash
-  chmod +x AirInputLan-*
+  chmod +x AirInputLan*
   ./AirInputLan-x86_64-linux  # Linux
   ./AirInputLan-x86_64-macos   # macOS Intel
   ./AirInputLan-arm64-macos    # macOS Apple Silicon
@@ -41,10 +40,24 @@ This is AirInputLan v1.1 release, adding dual-mode segmentation system and mobil
 **Other Important Notes**:
 - Windows: Firewall prompt will appear on first run, click "Allow"
 - Mobile and PC must be in the same LAN
-- **QR code generation depends on network**: If PC has no external network connection, you can manually enter IP address and port in mobile browser
 - macOS versions are not compressed with UPX to avoid being killed by Gatekeeper
 
 ## ✨ 新功能 / New Features
+
+### v1.1.1 (2026-01-24)
+
+**用户体验改进 / User Experience Improvements**:
+- ✅ **无需互联网连接**：二维码本地生成，不再依赖外部 API
+- ✅ **快速退出**：程序退出时间从 1-2 秒优化到约 250ms
+- ✅ **中文日志**：所有日志改为中文，更易理解
+
+**修复问题 / Bug Fixes**:
+- 🐛 修复端口绑定竞态条件
+- 🐛 修复前端重连逻辑可能累积定时器的问题
+- 🐛 修复 SSE client panic
+- 🐛 修复输入长度限制（按字符数计算）
+- 🐛 修复 PC 端 XSS 安全漏洞
+- 🐛 修复 Windows 单实例锁无效问题
 
 ### v1.1 (2026-01-24)
 
