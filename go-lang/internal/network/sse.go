@@ -43,7 +43,7 @@ type SSEClient struct {
 // SSEServer 表示 SSE 服务实例
 // SSEServer represents an SSE service instance
 type SSEServer struct {
-	clients      map[string]*SSEClient
+	Clients      map[string]*SSEClient
 	mu           sync.RWMutex
 	register     chan *SSEClient
 	unregister   chan *SSEClient
@@ -54,7 +54,7 @@ type SSEServer struct {
 // NewSSEServer 创建 SSE 服务
 func NewSSEServer() *SSEServer {
 	return &SSEServer{
-		clients:    make(map[string]*SSEClient),
+		Clients:    make(map[string]*SSEClient),
 		register:   make(chan *SSEClient),
 		unregister: make(chan *SSEClient),
 		broadcast:  make(chan Message, 256),
@@ -65,6 +65,16 @@ func NewSSEServer() *SSEServer {
 // SetOnMessage sets the callback function for receiving messages
 func (s *SSEServer) SetOnMessage(callback func(string)) {
 	s.onMessage = callback
+}
+
+// RLock 获取读锁
+func (s *SSEServer) RLock() {
+	s.mu.RLock()
+}
+
+// RUnlock 释放读锁
+func (s *SSEServer) RUnlock() {
+	s.mu.RUnlock()
 }
 
 // Run 启动 SSE 服务，阻塞运行直到程序退出
@@ -90,19 +100,33 @@ func (s *SSEServer) registerClient(client *SSEClient) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	// 允许多个客户端同时连接 / Allow multiple clients to connect simultaneously
-	s.clients[client.ID] = client
+	// 判断连接类型 / Determine connection type
+	isRemote := !isLocalIP(client.IP)
+
+	// 如果是远程设备（手机端），检查是否已有其他远程设备连接
+	// If remote device (mobile), check if there are already other remote devices
+	if isRemote {
+		for _, c := range s.Clients {
+			if !isLocalIP(c.IP) {
+				// 已有手机端连接，拒绝新连接 / Already has mobile connection, reject new connection
+				log.Printf("[Mobile] 拒绝连接：已有手机端连接，IP: %s", client.IP)
+				return
+			}
+		}
+	}
+
+	// 注册客户端 / Register client
+	s.Clients[client.ID] = client
 
 	// 判断连接类型 / Determine connection type
 	connType := "Unknown device"
-	isRemote := !isLocalIP(client.IP)
 	if isLocalIP(client.IP) {
 		connType = "PC (local)"
 	} else {
 		connType = "Mobile (remote)"
 	}
 
-	log.Printf("[%s] 客户端已连接，当前连接数: %d", connType, len(s.clients))
+	log.Printf("[%s] 客户端已连接，当前连接数: %d", connType, len(s.Clients))
 
 	// 如果远程设备（手机端）连接，发送信号隐藏二维码 / If remote device (mobile) connects, send signal to hide QR code
 	if isRemote {
@@ -114,7 +138,7 @@ func (s *SSEServer) registerClient(client *SSEClient) {
 		// 如果是 PC 端连接，检查是否已有远程设备，如果有则隐藏二维码
 		// If PC connects, check if there are already remote devices, if so hide QR code
 		hasRemoteClient := false
-		for _, c := range s.clients {
+		for _, c := range s.Clients {
 			if !isLocalIP(c.IP) {
 				hasRemoteClient = true
 				break
@@ -135,8 +159,8 @@ func (s *SSEServer) unregisterClient(client *SSEClient) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	if _, ok := s.clients[client.ID]; ok {
-		delete(s.clients, client.ID)
+	if _, ok := s.Clients[client.ID]; ok {
+		delete(s.Clients, client.ID)
 
 		// 判断连接类型 / Determine connection type
 		connType := "Unknown device"
@@ -151,12 +175,12 @@ func (s *SSEServer) unregisterClient(client *SSEClient) {
 		client.isClosed = true
 		client.mu.Unlock()
 		close(client.Send)
-		log.Printf("[%s] 客户端已断开，当前连接数: %d", connType, len(s.clients))
+		log.Printf("[%s] 客户端已断开，当前连接数: %d", connType, len(s.Clients))
 
 		// 如果远程设备（手机端）断开，检查是否还有其他远程设备 / If remote device (mobile) disconnects, check for other remote devices
 		if isRemote {
 			hasRemoteClient := false
-			for _, c := range s.clients {
+			for _, c := range s.Clients {
 				if !isLocalIP(c.IP) {
 					hasRemoteClient = true
 					break
@@ -178,7 +202,7 @@ func (s *SSEServer) broadcastMessage(message Message) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	for _, client := range s.clients {
+	for _, client := range s.Clients {
 		select {
 		case client.Send <- message:
 		default:

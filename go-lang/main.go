@@ -198,6 +198,39 @@ func handlePCIndex(w http.ResponseWriter, r *http.Request) {
 // handleMobileIndex 处理手机端首页
 func handleMobileIndex(w http.ResponseWriter, r *http.Request) {
 	log.Printf("[HTTP] 请求 Mobile 页面: %s", r.URL.Path)
+	
+	// 获取客户端 IP
+	clientIP := getClientIP(r)
+	
+	// 检查是否已有手机端连接
+	if !isLocalIP(clientIP) {
+		// 远程设备（手机端），检查是否已有其他远程设备连接
+		hasRemoteClient := false
+		sseServer.RLock()
+		for _, c := range sseServer.Clients {
+			if !isLocalIP(c.IP) {
+				hasRemoteClient = true
+				break
+			}
+		}
+		sseServer.RUnlock()
+		
+		if hasRemoteClient {
+			log.Printf("[HTTP] 拒绝连接：已有手机端连接，IP: %s", clientIP)
+			// 返回错误页面
+			content, err := webFS.ReadFile("web/mobile/error.html")
+			if err != nil {
+				log.Printf("[HTTP] 读取错误页面失败: %v", err)
+				http.Error(w, "已有手机端连接，请稍后再试", http.StatusServiceUnavailable)
+				return
+			}
+			w.Header().Set("Content-Type", "text/html; charset=utf-8")
+			w.Header().Set("Access-Control-Allow-Origin", "*")
+			w.Write(content)
+			return
+		}
+	}
+	
 	content, err := webFS.ReadFile("web/mobile/index.html")
 	if err != nil {
 		log.Printf("[HTTP] 读取 Mobile 页面失败: %v", err)
