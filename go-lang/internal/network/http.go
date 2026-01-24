@@ -13,10 +13,11 @@ import (
 // HttpServer 表示 HTTP 服务实例
 // HttpServer represents an HTTP service instance
 type HttpServer struct {
-	port   int
-	ip     string
-	mux    *http.ServeMux
-	server *http.Server
+	port     int
+	ip       string
+	mux      *http.ServeMux
+	server   *http.Server
+	listener net.Listener
 }
 
 // NewHttpServer 创建并返回一个新的 HTTP 服务实例
@@ -53,6 +54,7 @@ func (hs *HttpServer) Start() (int, error) {
 		if err == nil {
 			// 绑定成功
 			hs.port = port
+			hs.listener = listener
 			hs.server = &http.Server{
 				Addr:    addr,
 				Handler: hs.mux,
@@ -81,7 +83,11 @@ func (hs *HttpServer) Start() (int, error) {
 // Shutdown gracefully shuts down the HTTP service
 func (hs *HttpServer) Shutdown(ctx context.Context) error {
 	if hs.server != nil {
-		return hs.server.Shutdown(ctx)
+		err := hs.server.Shutdown(ctx)
+		if hs.listener != nil {
+			hs.listener.Close()
+		}
+		return err
 	}
 	return nil
 }

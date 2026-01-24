@@ -52,6 +52,7 @@ This is AirInputLan v1.1.2 release, fixing the issue of cards starting with punc
   - 过滤多个连续的标点符号
   - 过滤标点符号后面的空白字符
 - 🐛 修复 PC 端网页 XSS 安全问题
+- 🐛 修复 HTTP 服务 Listener 资源泄漏
 
 ### v1.1.1 (2026-01-24)
 
