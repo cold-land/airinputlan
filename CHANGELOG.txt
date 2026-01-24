@@ -6,30 +6,18 @@ AirInputLan 更新日志 / Changelog
 This document records the update history of all AirInputLan versions.
 
 
-v1.1.2 (2026-01-25) - Bug修复版本
--------------------
-
-修复问题 / Bug Fixes:
-  * 修复卡片开头标点过滤问题
-    - 过滤开头的中文标点符号：。！？，
-    - 过滤多个连续的标点符号
-    - 过滤标点符号后面的空白字符
-  * 修复 PC 端网页 XSS 安全问题
-  * 修复手机端连接检查逻辑
-    - 同一手机刷新时允许重新连接
-    - 不同手机尝试连接时拒绝
-    - 添加 IP 地址判断，避免误判
-  * 修复全局变量 mobileSegmentMode 并发安全问题
-  * Fix leading punctuation filtering issue for cards
-    - Filter leading Chinese punctuation marks: 。！？，
-    - Filter multiple consecutive punctuation marks
-    - Filter whitespace after punctuation marks
-  * Fix PC web page XSS security issue
-  * Fix mobile connection check logic
-    - Allow reconnection from same mobile device
-    - Reject connection from different mobile device
-    - Add IP address check to avoid false rejection
-  * Fix global variable mobileSegmentMode concurrent access issue
+### v1.1.2 (2026-01-25) - Bug修复版本
+- 修复 HTTP 服务 Listener 资源泄漏问题
+- 修复文件锁释放失败时错误处理不完善的问题
+- 修复前端定时器泄漏风险
+- 修复手机端连接检查逻辑，支持同设备刷新重连
+- 修复卡片开头标点过滤问题，过滤中文标点和标点后空白字符
+- 修复 PC 端网页 XSS 安全漏洞
+- 修复全局变量 mobileSegmentMode 并发安全问题
+- 修复 SSE 客户端连接管理缺陷，避免部分注册后再拒绝
+- 优化：定义常量替代魔法数字
+- 优化：添加前端全局错误处理
+- 优化：添加前端加载状态显示
 
 
 v1.1.1 (2026-01-24)

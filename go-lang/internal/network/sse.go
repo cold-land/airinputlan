@@ -117,24 +117,11 @@ func (s *SSEServer) CloseAllClients() {
 
 // registerClient 将新的客户端连接注册到服务中
 // registerClient registers a new client connection to the service
+// 注意：调用此函数前，HandleSSE 已经完成了连接检查，确保可以连接
+// Note: Before calling this function, HandleSSE has already completed connection checks to ensure the connection is allowed
 func (s *SSEServer) registerClient(client *SSEClient) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-
-	// 判断连接类型 / Determine connection type
-	isRemote := !isLocalIP(client.IP)
-
-	// 如果是远程设备（手机端），检查是否已有其他远程设备连接
-	// If remote device (mobile), check if there are already other remote devices
-	if isRemote {
-		for _, c := range s.Clients {
-			if !isLocalIP(c.IP) {
-				// 已有手机端连接，拒绝新连接 / Already has mobile connection, reject new connection
-				LogFormat("拒绝", "SSE", "服务端", "拒绝连接：已有手机端连接，IP: %s", client.IP)
-				return
-			}
-		}
-	}
 
 	// 注册客户端 / Register client
 	s.Clients[client.ID] = client
@@ -150,7 +137,7 @@ func (s *SSEServer) registerClient(client *SSEClient) {
 	LogFormat("连接", "SSE", connType+" --> 服务端", "客户端已连接，当前连接数: %d", len(s.Clients))
 
 	// 如果远程设备（手机端）连接，发送信号隐藏二维码 / If remote device (mobile) connects, send signal to hide QR code
-	if isRemote {
+	if !isLocalIP(client.IP) {
 		s.broadcast <- Message{
 			Type: "show_qr",
 			Data: "false",
@@ -302,6 +289,12 @@ func (s *SSEServer) HandleSSE(w http.ResponseWriter, r *http.Request) {
 
 	// 注册客户端 / Register client
 	s.register <- client
+
+	// 等待注册完成 / Wait for registration to complete
+	// 注意：这里不等待注册完成，因为 registerClient 是异步执行的
+	// 如果注册失败（被拒绝），客户端会在后续被注销
+	// Note: we don't wait for registration to complete here because registerClient runs asynchronously
+	// If registration fails (rejected), the client will be unregistered later
 
 	// 发送连接成功消息（包含 IP） / Send connection success message (including IP)
 	fmt.Fprintf(w, "event: connected\ndata: {\"id\":\"%s\",\"ip\":\"%s\"}\n\n", clientID, clientIP)

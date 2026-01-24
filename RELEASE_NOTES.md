@@ -66,6 +66,7 @@ This is AirInputLan v1.1.2 release, fixing the issue of cards starting with punc
   - 添加 clearAllTimers() 函数统一管理定时器
   - 在页面卸载时清除所有定时器，防止内存泄漏
 - 🐛 修复全局变量 mobileSegmentMode 并发安全问题
+- 🐛 修复 SSE 客户端连接管理缺陷，避免部分注册后再拒绝
 
 ### v1.1.1 (2026-01-24)
 
