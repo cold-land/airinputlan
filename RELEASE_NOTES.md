@@ -14,6 +14,11 @@ This is AirInputLan v1.1.2 release, fixing multiple security and stability issue
 
 ## ✨ 新功能 / New Features
 
+### v1.1.3 (2026-01-25)
+
+**修复问题 / Bug Fixes**:
+- 🐛 修复 Linux 上程序退出时浏览器被关闭的问题
+
 ### v1.1.2 (2026-01-25)
 
 **修复问题 / Bug Fixes**:

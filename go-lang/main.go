@@ -643,7 +643,10 @@ func openBrowser(url string) {
 	var err error
 	switch runtime.GOOS {
 	case "linux":
-		err = exec.Command("xdg-open", url).Start()
+		// 使用 setsid 创建新会话，使浏览器进程完全独立
+		// Use setsid to create new session, making browser process completely independent
+		cmd := exec.Command("setsid", "xdg-open", url)
+		err = cmd.Start()
 	case "windows":
 		err = exec.Command("rundll32", "url.dll,FileProtocolHandler", url).Start()
 	case "darwin":

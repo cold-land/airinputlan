@@ -6,6 +6,18 @@ AirInputLan 更新日志 / Changelog
 This document records the update history of all AirInputLan versions.
 
 
+v1.1.3 (2026-01-25)
+-------------------
+
+修复问题 / Bug Fixes:
+  * 修复 Linux 上程序退出时浏览器被关闭的问题
+    - 使用 setsid 创建新会话，使浏览器进程完全独立于主程序
+    - 程序退出时浏览器保持打开，用户的其他标签页不会丢失
+  * Fixed Linux browser closed when program exits
+    - Use setsid to create new session, making browser process completely independent
+    - Browser remains open when program exits, user's other tabs won't be lost
+
+
 v1.1.2 (2026-01-25)
 -------------------
 
