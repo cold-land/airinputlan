@@ -430,7 +430,14 @@
         }
 
         // 加载服务器信息
-        async function loadServerInfo() {
+async function loadServerInfo() {
+            const ipList = document.getElementById('ip-list');
+            const portInfo = document.getElementById('port-info');
+
+            // 显示加载状态
+            ipList.innerHTML = '加载中...';
+            portInfo.innerHTML = '加载中...';
+
             try {
                 const [ipsRes, portRes] = await Promise.all([
                     fetch('/api/ip'),
@@ -450,6 +457,8 @@
                 displayPort(portData.port);
                 generateQRCode(ipsData.ips, portData.port);
             } catch (error) {
+                ipList.innerHTML = '加载失败';
+                portInfo.innerHTML = '加载失败';
                 console.error('加载服务器信息失败:', error);
             }
         }
