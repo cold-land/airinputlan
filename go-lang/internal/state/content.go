@@ -3,6 +3,7 @@
 package state
 
 import (
+	"strings"
 	"sync"
 	"time"
 	"unicode"
@@ -43,6 +44,9 @@ func (cs *ContentState) UpdateContent(content string) {
 	// 累加内容（增量发送）
 	cs.currentContent += content
 	cs.lastInputTime = time.Now()
+
+	// 清理开头的标点符号 / Clean leading punctuation
+	cs.currentContent = CleanLeadingPunctuation(cs.currentContent)
 }
 
 // GetCurrentContent 返回当前正在输入的完整内容
@@ -70,6 +74,9 @@ func (cs *ContentState) GetHistoryCards() []string {
 func (cs *ContentState) AddCard(content string) {
 	cs.mu.Lock()
 	defer cs.mu.Unlock()
+
+	// 清理开头的标点符号 / Clean leading punctuation
+	content = CleanLeadingPunctuation(content)
 
 	// 过滤无意义内容 / Filter meaningless content
 	if !IsContentMeaningful(content) {
@@ -109,6 +116,30 @@ func (cs *ContentState) splitContent(content string, maxLength int) []string {
 		segments = append(segments, string(runes))
 	}
 	return segments
+}
+
+// CleanLeadingPunctuation 清理开头的中文标点符号（。！？，）
+// CleanLeadingPunctuation removes leading Chinese punctuation marks (。！？，)
+func CleanLeadingPunctuation(content string) string {
+	// 去除开头的空白字符 / Remove leading whitespace
+	content = strings.TrimSpace(content)
+
+	// 去除开头的 。！？，
+	runes := []rune(content)
+	for len(runes) > 0 {
+		firstChar := runes[0]
+		if firstChar == '。' || firstChar == '！' || firstChar == '？' || firstChar == '，' {
+			runes = runes[1:]
+			// 去除空白字符 / Remove whitespace
+			for len(runes) > 0 && unicode.IsSpace(runes[0]) {
+				runes = runes[1:]
+			}
+		} else {
+			break
+		}
+	}
+
+	return string(runes)
 }
 
 // IsContentMeaningful 检查内容是否有意义

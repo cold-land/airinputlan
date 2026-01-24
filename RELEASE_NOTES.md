@@ -1,10 +1,10 @@
-# AirInputLan v1.1.1
+# AirInputLan v1.1.2
 
 ## 🎉 新版本发布 / New Release
 
-这是 AirInputLan v1.1.1 版本，优化了日志系统、退出流程，并修复了多个 bug。
+这是 AirInputLan v1.1.2 版本，修复了卡片开头标点符号的问题。
 
-This is AirInputLan v1.1.1 release, optimizing logging system, exit flow, and fixing multiple bugs.
+This is AirInputLan v1.1.2 release, fixing the issue of cards starting with punctuation marks.
 
 ## ⚠️ 注意事项 / Important Notes
 
@@ -43,6 +43,14 @@ This is AirInputLan v1.1.1 release, optimizing logging system, exit flow, and fi
 - macOS versions are not compressed with UPX to avoid being killed by Gatekeeper
 
 ## ✨ 新功能 / New Features
+
+### v1.1.2 (2026-01-24)
+
+**修复问题 / Bug Fixes**:
+- 🐛 修复卡片开头可能出现标点符号的问题
+  - 服务端自动过滤卡片开头的中文标点符号（。！？，）
+  - 适用于单次输入模式和连续输入模式
+  - 避免上一句结尾标点符号落到下一句开头
 
 ### v1.1.1 (2026-01-24)
 

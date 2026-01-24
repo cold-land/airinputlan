@@ -6,6 +6,20 @@ AirInputLan 更新日志 / Changelog
 This document records the update history of all AirInputLan versions.
 
 
+v1.1.2 (2026-01-24)
+-------------------
+
+修复问题 / Bug Fixes:
+  * 修复卡片开头可能出现标点符号的问题
+    - 服务端自动过滤卡片开头的中文标点符号（。！？，）
+    - 适用于单次输入模式和连续输入模式
+    - 避免上一句结尾标点符号落到下一句开头
+  * Fixed cards starting with punctuation marks
+    - Server automatically filters leading Chinese punctuation marks (。！？，)
+    - Applies to both single input mode and continuous input mode
+    - Prevents trailing punctuation from previous sentence appearing at start of next sentence
+
+
 v1.1.1 (2026-01-24)
 -------------------
 
