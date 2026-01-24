@@ -18,6 +18,9 @@ v1.1.2 (2026-01-24)
   * 修复 HTTP 服务 Listener 资源泄漏
     - 确保程序关闭时正确释放 TCP 端口
     - 避免频繁启动/停止时出现端口被占用的错误
+  * 修复文件锁释放失败问题
+    - 改进错误处理逻辑，确保锁文件状态一致
+    - 关闭文件失败时不删除锁文件，避免状态不一致
   * Fix leading punctuation filtering issue for cards
     - Filter leading Chinese punctuation marks: 。！？，
     - Filter multiple consecutive punctuation marks
@@ -26,6 +29,9 @@ v1.1.2 (2026-01-24)
   * Fix HTTP service Listener resource leak
     - Ensure TCP port is properly released when program closes
     - Avoid port occupied errors when frequently starting/stopping
+  * Fix file lock release failure issue
+    - Improve error handling logic to ensure lock file state consistency
+    - Don't delete lock file when close fails to avoid inconsistent state
 
 
 v1.1.1 (2026-01-24)

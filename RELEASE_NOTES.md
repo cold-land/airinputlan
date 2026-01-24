@@ -55,6 +55,9 @@ This is AirInputLan v1.1.2 release, fixing the issue of cards starting with punc
 - 🐛 修复 HTTP 服务 Listener 资源泄漏
   - 确保程序关闭时正确释放 TCP 端口
   - 避免频繁启动/停止时出现端口被占用的错误
+- 🐛 修复文件锁释放失败问题
+  - 改进错误处理逻辑，确保锁文件状态一致
+  - 关闭文件失败时不删除锁文件，避免状态不一致
 
 ### v1.1.1 (2026-01-24)
 

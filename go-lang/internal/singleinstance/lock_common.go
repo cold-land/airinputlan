@@ -4,6 +4,7 @@ package singleinstance
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -127,15 +128,29 @@ func isProcessRunning(pid int) bool {
 func (l *Lock) Release() error {
 	if l.file != nil {
 		lockFile := l.file.Name()
+
 		// 在 Unix-like 系统上释放文件锁
 		if runtime.GOOS != "windows" {
-			unlockFileUnix(l.file)
+			if err := unlockFileUnix(l.file); err != nil {
+				log.Printf("警告: 释放文件锁失败: %v", err)
+			}
 		}
+
 		// 关闭文件
-		err := l.file.Close()
+		if err := l.file.Close(); err != nil {
+			// 如果关闭文件失败，不应该删除锁文件，避免状态不一致
+			return fmt.Errorf("关闭锁文件失败: %w", err)
+		}
+
 		// 删除锁文件
-		os.Remove(lockFile)
-		return err
+		if err := os.Remove(lockFile); err != nil {
+			// 如果文件不存在，不算错误
+			if !os.IsNotExist(err) {
+				return fmt.Errorf("删除锁文件失败: %w", err)
+			}
+		}
+
+		return nil
 	}
 	return nil
 }
