@@ -240,6 +240,28 @@ func (s *SSEServer) HandleSSE(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("[%s] 收到连接请求，IP: %s", connType, clientIP)
 
+	// 如果是远程设备（手机端），检查是否已有其他远程设备连接
+	// If remote device (mobile), check if there are already other remote devices
+	if !isLocalIP(clientIP) {
+		s.mu.RLock()
+		hasRemoteClient := false
+		for _, c := range s.Clients {
+			if !isLocalIP(c.IP) {
+				hasRemoteClient = true
+				break
+			}
+		}
+		s.mu.RUnlock()
+
+		if hasRemoteClient {
+			log.Printf("[Mobile] 拒绝 SSE 连接：已有手机端连接，IP: %s", clientIP)
+			// 返回错误状态
+			w.WriteHeader(http.StatusServiceUnavailable)
+			w.Write([]byte("已有手机端连接，请稍后再试"))
+			return
+		}
+	}
+
 	// 使用 SSE (Server-Sent Events) 模拟 WebSocket / Use SSE (Server-Sent Events) to simulate WebSocket
 	w.Header().Set("Content-Type", "text/event-stream")
 	w.Header().Set("Cache-Control", "no-cache")
@@ -324,6 +346,30 @@ func (s *SSEServer) HandlePostMessage(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
+	}
+
+	// 获取客户端 IP
+	clientIP := getClientIP(r)
+
+	// 如果是远程设备（手机端），检查是否在已连接列表中
+	// If remote device (mobile), check if it's in the connected clients list
+	if !isLocalIP(clientIP) {
+		s.mu.RLock()
+		isConnected := false
+		for _, c := range s.Clients {
+			if c.IP == clientIP {
+				isConnected = true
+				break
+			}
+		}
+		s.mu.RUnlock()
+
+		if !isConnected {
+			log.Printf("[Mobile] 拒绝 POST 请求：客户端未连接，IP: %s", clientIP)
+			w.WriteHeader(http.StatusServiceUnavailable)
+			w.Write([]byte("请先连接到服务"))
+			return
+		}
 	}
 
 	var msg Message
