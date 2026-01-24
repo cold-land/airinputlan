@@ -361,11 +361,6 @@ go-lang/
 │   └── mobile/        # Mobile interface
 │       └── index.html
 ├── scripts/           # Build scripts
-│   ├── build_all.sh   # Unified build
-│   ├── build_linux.sh # Linux build
-│   ├── build_macos.sh # macOS build
-│   ├── build_windows.sh # Windows build
-│   └── compress.sh    # Compression script
 ├── dist/              # Build artifacts
 ├── main.go            # Main program
 ├── go.mod             # Go module

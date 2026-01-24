@@ -361,11 +361,6 @@ go-lang/
 │   └── mobile/        # 手机端界面
 │       └── index.html
 ├── scripts/           # 编译脚本
-│   ├── build_all.sh   # 统一编译
-│   ├── build_linux.sh # Linux 编译
-│   ├── build_macos.sh # macOS 编译
-│   ├── build_windows.sh # Windows 编译
-│   └── compress.sh    # 压缩脚本
 ├── dist/              # 编译产物
 ├── main.go            # 主程序
 ├── go.mod             # Go 模块
