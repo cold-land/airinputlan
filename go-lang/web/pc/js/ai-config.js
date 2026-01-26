@@ -17,6 +17,7 @@ const DEFAULT_AI_CONFIG = {
 };
 
 let aiConfig = { ...DEFAULT_AI_CONFIG };
+let lastTestedConfig = null; // 记录上次测试的配置
 
 // 导出AI配置
 function exportAIConfig() {
@@ -169,13 +170,32 @@ function saveAIConfig() {
             aiPromptTemplate: prompt
         };
 
-        // 测试在线 AI 配置
-        testOnlineAIConfig(onlineApiKey, onlineModel).then(() => {
+        // 检查配置是否改变（检查四个字段：aiProvider、onlineProvider、onlineApiKey、onlineModel）
+        const configChanged = !lastTestedConfig || 
+            lastTestedConfig.aiProvider !== 'online' ||
+            lastTestedConfig.onlineProvider !== onlineProvider ||
+            lastTestedConfig.onlineApiKey !== onlineApiKey ||
+            lastTestedConfig.onlineModel !== onlineModel;
+
+        if (configChanged) {
+            // 配置改变了，需要测试
+            testOnlineAIConfig(onlineApiKey, onlineModel).then(() => {
+                // 测试成功，记录配置
+                lastTestedConfig = {
+                    aiProvider: 'online',
+                    onlineProvider: onlineProvider,
+                    onlineApiKey: onlineApiKey,
+                    onlineModel: onlineModel
+                };
+                closeAISettingsModal();
+            }).catch((error) => {
+                console.error('配置验证失败:', error);
+                closeAISettingsModal();
+            });
+        } else {
+            // 配置没有改变，直接关闭
             closeAISettingsModal();
-        }).catch((error) => {
-            console.error('配置验证失败:', error);
-            closeAISettingsModal();
-        });
+        }
     }
 }
 
