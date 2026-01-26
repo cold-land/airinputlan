@@ -6,6 +6,43 @@ AirInputLan 更新日志 / Changelog
 This document records the update history of all AirInputLan versions.
 
 
+v1.2.0 (2026-01-26)
+-------------------
+
+新增功能 / New Features:
+  * 本地AI修正功能（需要Ollama支持）
+    - 右上角添加"🤖 AI修正"按钮，点击打开配置界面
+    - 配置界面支持修改Ollama API地址、模型名称、提示词模板
+    - 每个历史卡片左侧显示AI修正按钮（启用时显示）
+    - 点击按钮即可修正该卡片内容，修正后自动复制到剪贴板
+    - 支持配置导出/导入（下载JSON文件）
+    - 全内存运行，刷新页面后需要重新导入配置
+  * Local AI correction feature (requires Ollama support)
+    - Add "🤖 AI Correction" button in top-right corner, click to open settings
+    - Settings interface supports modifying Ollama API URL, model name, prompt template
+    - AI correction button appears on left side of each history card (when enabled)
+    - Click button to correct card content, automatically copy to clipboard after correction
+    - Support configuration export/import (download JSON file)
+    - Full memory operation, need to re-import configuration after page refresh
+
+注意事项 / Important Notes:
+  * AI修正功能依赖Ollama服务
+    - 请确保Ollama已启动并运行在http://localhost:11434
+    - 如果Ollama未启动或连接失败，会显示错误提示
+  * AI correction feature depends on Ollama service
+    - Please ensure Ollama is started and running at http://localhost:11434
+    - Error alert will be shown if Ollama is not started or connection fails
+
+  * 配置仅在当前页面有效
+    - 刷新网页后配置将丢失
+    - 请务必点击"导出配置"保存配置文件
+    - 刷新页面后需要重新导入配置文件
+  * Configuration only valid in current page
+    - Configuration will be lost after page refresh
+    - Please click "Export Configuration" to save configuration file
+    - Need to re-import configuration file after page refresh
+
+
 v1.1.3 (2026-01-25)
 -------------------
 
