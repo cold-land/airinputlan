@@ -13,11 +13,71 @@ const DEFAULT_AI_CONFIG = {
     onlineModel: 'glm-4.7-flash',
     
     // 通用配置
+    aiPromptTemplateId: 'default',  // 模板 ID
     aiPromptTemplate: '你是专业的语音识别文本修正助手，核心逻辑是先理解整句话的语义和使用场景，再针对性修正语音转文字的错误，仅输出修正后的纯文本，不要任何额外解释、标点或备注。\n严格遵循以下通用修正规则：\n1. 语义优先：基于整句话的语境和语义，判断并修正语音误听的同音字、错字、漏字、多字，尤其是技术场景的词汇（如英文/数字组合、专业术语）；\n2. 保留核心：完全保留原句的数字、英文词汇、专有名词、核心语义和基本句式，仅修正错误，不增删、不改写原意；\n3. 清理口语：移除无意义的语气词（嗯、啊、呢、吧、哦、呃、然后）、重复词汇（如我们我们、的的）、多余的无意义单字；\n4. 规范格式：修正英文/技术词汇间的标点错误（如逗号换空格）、重复标点，保持原句整体标点和句式结构基本不变；\n5. 拼写修正：基于语义修正技术词汇的字母重复、漏写、错写问题，还原正确的英文专业词汇。'
 };
 
 let aiConfig = { ...DEFAULT_AI_CONFIG };
 let lastTestedConfig = null; // 记录上次测试的配置
+let promptTemplates = []; // 提示词模板列表
+
+// 加载提示词模板
+async function loadPromptTemplates() {
+    try {
+        const response = await fetch('/pc/js/prompt-templates.json');
+        const data = await response.json();
+        promptTemplates = data.templates || [];
+        
+        // 填充下拉选择框
+        const select = document.getElementById('ai-prompt-template');
+        if (select) {
+            select.innerHTML = '';
+            
+            // 添加预设模板
+            promptTemplates.forEach(template => {
+                const option = document.createElement('option');
+                option.value = template.id;
+                option.textContent = template.name;
+                select.appendChild(option);
+            });
+            
+            // 添加"自定义"选项
+            const customOption = document.createElement('option');
+            customOption.value = 'custom';
+            customOption.textContent = '自定义';
+            select.appendChild(customOption);
+            
+            // 默认选择
+            select.value = aiConfig.aiPromptTemplateId || 'default';
+            handlePromptTemplateChange();
+        }
+    } catch (error) {
+        console.error('加载提示词模板失败:', error);
+    }
+}
+
+// 处理提示词模板选择变化
+function handlePromptTemplateChange() {
+    const select = document.getElementById('ai-prompt-template');
+    const customTextarea = document.getElementById('ai-prompt');
+    
+    if (!select || !customTextarea) return;
+    
+    const selectedValue = select.value;
+    
+    if (selectedValue === 'custom') {
+        // 自定义模式，保持当前内容
+        customTextarea.value = aiConfig.aiPromptTemplate;
+    } else {
+        // 预设模板模式，填充预设内容
+        const template = promptTemplates.find(t => t.id === selectedValue);
+        if (template) {
+            customTextarea.value = template.prompt;
+            aiConfig.aiPromptTemplate = template.prompt;
+            aiConfig.aiPromptTemplateId = template.id;
+        }
+    }
+}
 
 // 导出AI配置
 function exportAIConfig() {
@@ -123,10 +183,24 @@ async function testOnlineAIConfig(apiKey, model) {
 function saveAIConfig() {
     const mode = document.querySelector('input[name="ai-mode"]:checked')?.value || 'manual';
     const provider = document.querySelector('input[name="ai-provider"]:checked')?.value || 'online';
-    const prompt = document.getElementById('ai-prompt').value.trim();
+    const promptTemplateId = document.getElementById('ai-prompt-template').value;
+    const customPrompt = document.getElementById('ai-prompt').value.trim();
 
-    if (!prompt) {
-        return;
+    // 确定提示词内容
+    let prompt = customPrompt;
+    let templateId = promptTemplateId;
+
+    if (promptTemplateId !== 'custom') {
+        // 使用预设模板
+        const template = promptTemplates.find(t => t.id === promptTemplateId);
+        if (template) {
+            prompt = template.prompt;
+        }
+    } else {
+        // 使用自定义提示词
+        if (!prompt) {
+            return;
+        }
     }
 
     // 根据提供商保存不同的配置
@@ -146,6 +220,7 @@ function saveAIConfig() {
             onlineProvider: aiConfig.onlineProvider,
             onlineApiKey: aiConfig.onlineApiKey,
             onlineModel: aiConfig.onlineModel,
+            aiPromptTemplateId: templateId,
             aiPromptTemplate: prompt
         };
 
@@ -167,35 +242,24 @@ function saveAIConfig() {
             onlineProvider: onlineProvider,
             onlineApiKey: onlineApiKey,
             onlineModel: onlineModel,
+            aiPromptTemplateId: templateId,
             aiPromptTemplate: prompt
         };
 
-        // 检查配置是否改变（检查四个字段：aiProvider、onlineProvider、onlineApiKey、onlineModel）
-        const configChanged = !lastTestedConfig || 
-            lastTestedConfig.aiProvider !== 'online' ||
-            lastTestedConfig.onlineProvider !== onlineProvider ||
-            lastTestedConfig.onlineApiKey !== onlineApiKey ||
-            lastTestedConfig.onlineModel !== onlineModel;
-
-        if (configChanged) {
-            // 配置改变了，需要测试
-            testOnlineAIConfig(onlineApiKey, onlineModel).then(() => {
-                // 测试成功，记录配置
-                lastTestedConfig = {
-                    aiProvider: 'online',
-                    onlineProvider: onlineProvider,
-                    onlineApiKey: onlineApiKey,
-                    onlineModel: onlineModel
-                };
-                closeAISettingsModal();
-            }).catch((error) => {
-                console.error('配置验证失败:', error);
-                closeAISettingsModal();
-            });
-        } else {
-            // 配置没有改变，直接关闭
+        // 在线 AI：任何修改都需要测试握手
+        testOnlineAIConfig(onlineApiKey, onlineModel).then(() => {
+            // 测试成功，记录配置
+            lastTestedConfig = {
+                aiProvider: 'online',
+                onlineProvider: onlineProvider,
+                onlineApiKey: onlineApiKey,
+                onlineModel: onlineModel
+            };
             closeAISettingsModal();
-        }
+        }).catch((error) => {
+            console.error('配置验证失败:', error);
+            closeAISettingsModal();
+        });
     }
 }
 
@@ -231,6 +295,16 @@ function openAISettingsModal() {
 
     // 通用配置
     document.getElementById('ai-prompt').value = aiConfig.aiPromptTemplate;
+
+    // 加载提示词模板
+    loadPromptTemplates().then(() => {
+        // 填充下拉选择框
+        const select = document.getElementById('ai-prompt-template');
+        if (select) {
+            select.value = aiConfig.aiPromptTemplateId || 'default';
+            handlePromptTemplateChange();
+        }
+    });
 
     // 根据提供商显示/隐藏配置区
     toggleAIProviderConfig();

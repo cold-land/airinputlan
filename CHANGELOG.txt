@@ -6,6 +6,66 @@ AirInputLan 更新日志 / Changelog
 This document records the update history of all AirInputLan versions.
 
 
+v1.2.3 (2026-01-26)
+-------------------
+
+新增功能 / New Features:
+  * 提示词模板预设功能
+    - 添加提示词模板下拉选择框，支持快速切换不同场景的提示词
+    - 提示词模板存储在独立的 JSON 文件中（web/pc/js/prompt-templates.json）
+    - 支持自定义提示词，用户可以基于预设模板进行微调
+    - 预设模板包括：语音输入修正、DOTA2 游戏翻译
+    - 提示词输入框始终可见，方便用户随时编辑
+  * Prompt template presets feature
+    - Add prompt template dropdown for quick switching between different scenarios
+    - Prompt templates stored in standalone JSON file (web/pc/js/prompt-templates.json)
+    - Support custom prompts, users can fine-tune based on preset templates
+    - Preset templates include: Voice Input Correction, DOTA2 Game Translation
+    - Prompt input box always visible for easy editing
+
+  * DOTA2 游戏翻译模板
+    - 专门为 DOTA2 游戏场景设计的翻译模板
+    - 支持英雄、技能、装备英文名称翻译
+    - 熟悉外服玩家口语化表达和战术缩写
+    - 适配游戏内快速打字沟通需求
+  * DOTA2 game translation template
+    - Translation template specifically designed for DOTA2 game scenarios
+    - Supports translation of hero, skill, and item English names
+    - Familiar with overseas player colloquial expressions and tactical abbreviations
+    - Optimized for quick in-game typing communication
+
+代码优化 / Code Optimization:
+  * 优化连接测试逻辑
+    - 添加配置变更检测，避免重复测试
+    - 检查四个关键字段：AI提供商、在线提供商、API Key、模型名称
+    - 减少不必要的 API 调用，避免触发 429 限流错误
+  * Optimize connection test logic
+    - Add configuration change detection to avoid duplicate tests
+    - Check four key fields: AI provider, online provider, API key, model name
+    - Reduce unnecessary API calls, avoid triggering 429 rate limit errors
+
+界面优化 / UI Improvements:
+  * 调整 AI 配置界面布局
+    - 将"在线API（智谱AI）"移动到"本地AI（Ollama）"之前
+    - 将"在线提供商"改为"AI提供商"
+    - 将 AI 提供商下拉框和 API Key 输入框放在同一行
+    - 移除下拉选项中的"(GLM 4.7 Flash)"文字
+  * Adjust AI configuration interface layout
+    - Move "Online API (ZhipuAI)" before "Local AI (Ollama)"
+    - Change "Online Provider" to "AI Provider"
+    - Place AI provider dropdown and API key input box on the same line
+    - Remove "(GLM 4.7 Flash)" text from dropdown options
+
+  * 移除所有 Alert 弹窗
+    - 移除所有 alert() 和 confirm() 调用
+    - 改为静默控制台日志输出
+    - 提升用户体验，避免频繁确认操作
+  * Remove all Alert popups
+    - Remove all alert() and confirm() calls
+    - Change to silent console log output
+    - Improve user experience, avoid frequent confirmation operations
+
+
 v1.2.2 (2026-01-26)
 -------------------
 

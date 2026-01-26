@@ -112,6 +112,7 @@ func main() {
 	httpServer.HandleFunc("/", handleMobileIndex) // 默认为手机端
 	httpServer.HandleFunc("/pc", handlePCIndex)
 	httpServer.HandleFunc("/mobile", handleMobileIndex)
+	httpServer.HandleFunc("/template-editor", handleTemplateEditor) // 模板编辑器页面
 	httpServer.HandleFunc("/ws", sseServer.HandleSSE) // Keep /ws for backward compatibility
 	httpServer.HandleFunc("/ws/message", sseServer.HandlePostMessage)
 	httpServer.HandleFunc("/api/ip", network.HandleGetIP(convertIps(ips)))
@@ -212,6 +213,20 @@ func handleMobileIndex(w http.ResponseWriter, r *http.Request) {
 	content, err := webFS.ReadFile("web/mobile/index.html")
 	if err != nil {
 		network.LogFormat("错误", "HTTP", "服务端", "读取 Mobile 页面失败: %v", err)
+		http.Error(w, "Not found", http.StatusNotFound)
+		return
+	}
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Write(content)
+}
+
+// handleTemplateEditor 处理模板编辑器页面
+func handleTemplateEditor(w http.ResponseWriter, r *http.Request) {
+	network.LogFormat("接收", "HTTP", "PC端 --> 服务端", "请求模板编辑器页面: %s", r.URL.Path)
+	content, err := webFS.ReadFile("web/pc/template-editor.html")
+	if err != nil {
+		network.LogFormat("错误", "HTTP", "服务端", "读取模板编辑器页面失败: %v", err)
 		http.Error(w, "Not found", http.StatusNotFound)
 		return
 	}

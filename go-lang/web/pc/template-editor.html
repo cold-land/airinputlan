@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>提示词模板编辑器 - 离线版</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        body.dark-theme {
+            background: #1a1a1a;
+            color: #e0e0e0;
+        }
+
+        .editor-container {
+            display: flex;
+            height: 100vh;
+            width: 100%;
+        }
+
+        /* 左侧边栏 */
+        .sidebar {
+            width: 300px;
+            background: white;
+            border-right: 1px solid #ddd;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        body.dark-theme .sidebar {
+            background: #2a2a2a;
+            border-right-color: #444;
+        }
+
+        .sidebar-header {
+            margin-bottom: 20px;
+        }
+
+        .sidebar-header h2 {
+            font-size: 20px;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        body.dark-theme .sidebar-header h2 {
+            color: #e0e0e0;
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .toolbar button {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: white;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .toolbar button:hover {
+            background: #f0f0f0;
+        }
+
+        body.dark-theme .toolbar button {
+            background: #333;
+            border-color: #555;
+            color: #e0e0e0;
+        }
+
+        body.dark-theme .toolbar button:hover {
+            background: #444;
+        }
+
+        .search-box {
+            margin-bottom: 15px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        body.dark-theme .search-box input {
+            background: #333;
+            border-color: #555;
+            color: #e0e0e0;
+        }
+
+        .template-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .template-item {
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .template-item:hover {
+            background: #f0f0f0;
+        }
+
+        .template-item.active {
+            background: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+
+        .template-item .template-id {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 4px;
+        }
+
+        .template-item.active .template-id {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .template-item .template-name {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .template-item .template-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .template-item .template-actions button {
+            padding: 4px 8px;
+            font-size: 12px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            background: white;
+            cursor: pointer;
+        }
+
+        .template-item .template-actions button:hover {
+            background: #f0f0f0;
+        }
+
+        .template-item.active .template-actions button {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.3);
+            color: white;
+        }
+
+        /* 右侧主区域 */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .editor-header {
+            margin-bottom: 20px;
+        }
+
+        .editor-header h2 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .editor-form {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        body.dark-theme .editor-form {
+            background: #2a2a2a;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .form-group input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        body.dark-theme .form-group input[type="text"] {
+            background: #333;
+            border-color: #555;
+            color: #e0e0e0;
+        }
+
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 300px;
+        }
+
+        body.dark-theme .form-group textarea {
+            background: #333;
+            border-color: #555;
+            color: #e0e0e0;
+        }
+
+        .form-group .char-count {
+            text-align: right;
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        body.dark-theme .form-group .char-count {
+            color: #999;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .form-actions button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #0056b3;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+
+        body.dark-theme .empty-state {
+            color: #999;
+        }
+
+        .empty-state h3 {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .empty-state p {
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="editor-container">
+        <!-- 左侧边栏 -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h2>提示词模板编辑器</h2>
+                <p style="font-size: 12px; color: #666; margin-bottom: 15px;">离线工具 - 双击 HTML 文件即可使用</p>
+                <div class="toolbar">
+                    <button onclick="importTemplates()">📁 导入</button>
+                    <button onclick="exportTemplates()">💾 导出</button>
+                    <button onclick="addTemplate()">➕ 新建</button>
+                </div>
+                <div class="search-box">
+                    <input type="text" id="search-input" placeholder="搜索模板..." oninput="filterTemplates()">
+                </div>
+            </div>
+            <div class="template-list" id="template-list">
+                <!-- 模板列表将在这里动态生成 -->
+            </div>
+        </div>
+
+        <!-- 右侧主区域 -->
+        <div class="main-content">
+            <div class="editor-header">
+                <h2>编辑模板</h2>
+            </div>
+            <div id="editor-content">
+                <div class="empty-state">
+                    <h3>请选择一个模板进行编辑</h3>
+                    <p>或者点击"新建"按钮创建新模板</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/template-editor.js"></script>
+</body>
+</html>

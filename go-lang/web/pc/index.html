@@ -107,8 +107,12 @@
 
                 <!-- 通用配置 -->
                 <div class="ai-config-item">
-                    <label for="ai-prompt">提示词模板：</label>
-                    <textarea id="ai-prompt" rows="8" placeholder="请输入提示词模板..."></textarea>
+                    <label for="ai-prompt-template">提示词模板：</label>
+                    <select id="ai-prompt-template"></select>
+                </div>
+                <div class="ai-config-item">
+                    <label for="ai-prompt">提示词内容：</label>
+                    <textarea id="ai-prompt" rows="8" placeholder="请输入或修改提示词模板..."></textarea>
                 </div>
                 <div class="ai-config-actions">
                     <button onclick="exportAIConfig()">导出配置</button>
