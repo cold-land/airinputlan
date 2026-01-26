@@ -440,42 +440,41 @@ async function correctCardWithAI(cardWrapper, isAutoMode = false) {
         // 构建提示词（自动追加待修正文本）
         const prompt = aiConfig.aiPromptTemplate + '\n\n待修正文本：' + originalText;
 
-        // 调用Ollama API
-        const response = await fetch(aiConfig.ollamaApiUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                model: aiConfig.ollamaModel,
-                prompt: prompt,
-                stream: false,
-                options: {
-                    temperature: 0.0,
-                    top_p: 1.0,
-                    num_ctx: 2048
+        let fixedText;
+
+        // 根据提供商选择调用不同的 API
+        if (aiConfig.aiProvider === 'local') {
+            fixedText = await callLocalAPI(prompt);
+
+            if (!fixedText || fixedText.trim() === '') {
+                throw new Error('AI返回空结果');
+            }
+
+            // 更新卡片内容
+            card.dataset.originalText = fixedText;
+            cardContent.innerHTML = highlightDuplicates(fixedText);
+            copyToClipboard(fixedText);
+        } else {
+            // 在线 API 使用流式输出
+            await callOnlineAPI(prompt,
+                // onChunk - 实时更新卡片内容
+                (chunk) => {
+                    cardContent.innerHTML = highlightDuplicates(chunk);
+                },
+                // onComplete - 流式输出完成
+                (fullText) => {
+                    if (!fullText || fullText.trim() === '') {
+                        throw new Error('AI返回空结果');
+                    }
+                    card.dataset.originalText = fullText;
+                    copyToClipboard(fullText);
                 }
-            })
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            );
         }
-
-        const data = await response.json();
-        const fixedText = data.response;
-
-        if (!fixedText || fixedText.trim() === '') {
-            throw new Error('AI返回空结果');
-        }
-
-        // 更新卡片内容
-        card.dataset.originalText = fixedText;
-        cardContent.innerHTML = highlightDuplicates(fixedText);
-        copyToClipboard(fixedText);
     } catch (error) {
         console.error('AI修正失败:', error);
-        alert(`AI修正失败：${error.message}\n请检查Ollama服务是否正常运行`);
+        const providerName = aiConfig.aiProvider === 'local' ? 'Ollama' : '智谱AI';
+        alert(`AI修正失败：${error.message}\n请检查${providerName}服务是否正常运行`);
         // 恢复原始内容
         cardContent.innerHTML = originalContent;
     } finally {
@@ -573,4 +572,126 @@ function hideControlPanel() {
 function showControlPanel() {
     console.log('显示显控区');
     document.getElementById('control-panel').classList.remove('hidden');
+}
+
+// 调用本地 Ollama API
+async function callLocalAPI(prompt) {
+    const response = await fetch(aiConfig.localApiUrl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            model: aiConfig.localModel,
+            prompt: prompt,
+            stream: false,
+            options: {
+                temperature: 0.0,
+                top_p: 1.0,
+                num_ctx: 2048
+            }
+        })
+    });
+
+    if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data.response;
+}
+
+// 调用在线 API（智谱 AI）- 支持流式输出
+async function callOnlineAPI(prompt, onChunk, onComplete) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 60000); // 60秒超时（流式输出可能需要更长时间）
+
+    try {
+        const response = await fetch('https://open.bigmodel.cn/api/paas/v4/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${aiConfig.onlineApiKey}`
+            },
+            body: JSON.stringify({
+                model: aiConfig.onlineModel,
+                messages: [
+                    {
+                        role: "system",
+                        content: aiConfig.aiPromptTemplate
+                    },
+                    {
+                        role: "user",
+                        content: prompt
+                    }
+                ],
+                stream: true,  // 启用流式输出
+                max_tokens: 1024,
+                temperature: 0.3,
+                thinking: {
+                    type: "disabled"
+                }
+            }),
+            signal: controller.signal
+        });
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(`HTTP ${response.status}: ${errorData.error?.message || response.statusText}`);
+        }
+
+        let fullContent = '';
+
+        // 读取流式响应
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            // 解码数据块
+            const chunk = decoder.decode(value, { stream: true });
+            const lines = chunk.split('\n');
+
+            for (const line of lines) {
+                if (line.startsWith('data: ')) {
+                    const data = line.slice(6); // 移除 'data: ' 前缀
+                    if (data === '[DONE]') {
+                        break; // 流式输出结束
+                    }
+
+                    try {
+                        const json = JSON.parse(data);
+                        if (json.choices && json.choices.length > 0) {
+                            const delta = json.choices[0].delta;
+                            if (delta.content) {
+                                fullContent += delta.content;
+                                // 实时更新卡片内容
+                                if (onChunk) {
+                                    onChunk(fullContent);
+                                }
+                            }
+                        }
+                    } catch (e) {
+                        console.error('解析流式数据失败:', e);
+                    }
+                }
+            }
+        }
+
+        // 流式输出完成
+        if (onComplete) {
+            onComplete(fullContent);
+        }
+
+        return fullContent;
+    } catch (error) {
+        if (error.name === 'AbortError') {
+            throw new Error('请求超时（60秒），请检查网络连接');
+        }
+        throw error;
+    }
 }

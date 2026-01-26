@@ -53,7 +53,7 @@
                 <button class="ai-modal-close" onclick="closeAISettingsModal()">×</button>
             </div>
             <div class="ai-modal-body">
-
+                <!-- 修正模式选择 -->
                 <div class="ai-config-item">
                     <label style="display: inline-block; margin-right: 20px;">
                         <input type="radio" name="ai-mode" id="ai-mode-manual" value="manual">
@@ -64,14 +64,50 @@
                         自动AI修正
                     </label>
                 </div>
+
+                <!-- AI 提供商选择 -->
                 <div class="ai-config-item">
-                    <label for="ai-api-url">Ollama API地址：</label>
-                    <input type="text" id="ai-api-url" placeholder="http://localhost:11434/api/generate">
+                    <label style="display: inline-block; margin-right: 20px;">
+                        <input type="radio" name="ai-provider" id="ai-provider-local" value="local" onchange="toggleAIProviderConfig()">
+                        本地AI（Ollama）
+                    </label>
+                    <label style="display: inline-block;">
+                        <input type="radio" name="ai-provider" id="ai-provider-online" value="online" onchange="toggleAIProviderConfig()">
+                        在线API（智谱AI）
+                    </label>
                 </div>
-                <div class="ai-config-item">
-                    <label for="ai-model">模型名称：</label>
-                    <input type="text" id="ai-model" placeholder="qwen3:0.6b">
+
+                <!-- 本地 AI 配置 -->
+                <div id="ai-local-config" class="ai-config-section hidden">
+                    <div class="ai-config-item">
+                        <label for="ai-local-api-url">Ollama API地址：</label>
+                        <input type="text" id="ai-local-api-url" placeholder="http://localhost:11434/api/generate">
+                    </div>
+                    <div class="ai-config-item">
+                        <label for="ai-local-model">模型名称：</label>
+                        <input type="text" id="ai-local-model" placeholder="qwen3:0.6b">
+                    </div>
                 </div>
+
+                <!-- 在线 AI 配置 -->
+                <div id="ai-online-config" class="ai-config-section">
+                    <div class="ai-config-item">
+                        <label for="ai-online-provider">在线提供商：</label>
+                        <select id="ai-online-provider">
+                            <option value="zhipu">智谱AI（GLM 4.7 Flash）</option>
+                        </select>
+                    </div>
+                    <div class="ai-config-item">
+                        <label for="ai-online-api-key">API Key：</label>
+                        <input type="password" id="ai-online-api-key" placeholder="请输入智谱AI API Key">
+                    </div>
+                    <div class="ai-config-item">
+                        <label for="ai-online-model">模型名称：</label>
+                        <input type="text" id="ai-online-model" value="glm-4.7-flash" readonly>
+                    </div>
+                </div>
+
+                <!-- 通用配置 -->
                 <div class="ai-config-item">
                     <label for="ai-prompt">提示词模板：</label>
                     <textarea id="ai-prompt" rows="8" placeholder="请输入提示词模板..."></textarea>
@@ -82,9 +118,9 @@
                 </div>
                 <div class="ai-config-warning">
                     <p><strong>⚠️ 重要说明：</strong></p>
-                    <p>1. 此功能依赖 Ollama 服务</p>
-                    <p>   请确保 Ollama 已启动并运行在 http://localhost:11434</p>
-                    <p>2. 配置仅在当前页面有效</p>
+                    <p>1. 本地AI：依赖 Ollama 服务，请确保已启动</p>
+                    <p>2. 在线API：依赖网络连接，需要有效的 API Key</p>
+                    <p>3. 配置仅在当前页面有效</p>
                     <p>   刷新网页后配置将丢失</p>
                     <p>   请务必点击"导出配置"保存配置文件</p>
                 </div>
