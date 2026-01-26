@@ -37,6 +37,12 @@ func (hs *HttpServer) HandleFunc(pattern string, handler func(http.ResponseWrite
 	hs.mux.HandleFunc(pattern, handler)
 }
 
+// Handle 为指定的 URL 模式注册处理器
+// Handle registers a handler for the specified URL pattern
+func (hs *HttpServer) Handle(pattern string, handler http.Handler) {
+	hs.mux.Handle(pattern, handler)
+}
+
 // Start 启动 HTTP 服务，从 5000 端口开始尝试绑定，阻塞运行直到出错
 // Start starts the HTTP service, trying to bind from port 5000, and blocks until an error occurs
 func (hs *HttpServer) Start() (int, error) {

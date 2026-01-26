@@ -5,10 +5,12 @@
 package main
 
 import (
+	"context"
 	"embed"
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io/fs"
 	"log"
 	"net/http"
 	"os"
@@ -19,7 +21,6 @@ import (
 	"sync"
 	"syscall"
 	"time"
-	"context"
 
 	"airinputlan/internal/netif"
 	"airinputlan/internal/network"
@@ -118,6 +119,14 @@ func main() {
 	httpServer.HandleFunc("/api/segment", handleSegmentRequest)
 	httpServer.HandleFunc("/api/mode", handleModeChange)
 	httpServer.HandleFunc("/api/mode/query", handleModeQuery)
+
+	// 注册静态文件服务器 / Register static file server
+	// 用于处理 /pc/ 路径下的所有静态文件（JS、CSS、图片等）
+	pcFS, err := fs.Sub(webFS, "web/pc")
+	if err != nil {
+		log.Fatalf("创建 PC 静态文件系统失败: %v", err)
+	}
+	httpServer.Handle("/pc/", http.StripPrefix("/pc/", http.FileServer(http.FS(pcFS))))
 
 	// 启动 HTTP 服务（内部会自动尝试端口绑定） / Start HTTP service (will automatically try to bind ports)
 	network.LogInfo("HTTP 服务启动中...")
