@@ -62,6 +62,32 @@
             color: #e0e0e0;
         }
 
+        /* AI修正按钮 */
+        .ai-toggle {
+            position: fixed;
+            top: 50px;
+            right: 10px;
+            z-index: 1000;
+            padding: 8px 16px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+        }
+
+        .ai-toggle:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        body.dark-theme .ai-toggle {
+            background: #2a2a2a;
+            border-color: #444;
+            color: #e0e0e0;
+        }
+
         /* 显控区 */
         .control-panel {
             display: flex;
@@ -315,11 +341,269 @@
             border-color: #555;
             color: #e0e0e0;
         }
-    </style>
-</head>
-<body>
+
+        /* AI设置模态框 */
+        .ai-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .ai-modal-content {
+            background: white;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            transition: background 0.3s;
+        }
+
+        body.dark-theme .ai-modal-content {
+            background: #2a2a2a;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .ai-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            border-bottom: 1px solid #ddd;
+            transition: border-color 0.3s;
+        }
+
+        body.dark-theme .ai-modal-header {
+            border-bottom-color: #444;
+        }
+
+        .ai-modal-header h2 {
+            margin: 0;
+            font-size: 20px;
+            color: #333;
+            transition: color 0.3s;
+        }
+
+        body.dark-theme .ai-modal-header h2 {
+            color: #e0e0e0;
+        }
+
+        .ai-modal-close {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: #999;
+            transition: color 0.3s;
+        }
+
+        .ai-modal-close:hover {
+            color: #333;
+        }
+
+        body.dark-theme .ai-modal-close:hover {
+            color: #e0e0e0;
+        }
+
+        .ai-modal-body {
+            padding: 20px;
+        }
+
+        .ai-config-item {
+            margin-bottom: 20px;
+        }
+
+        .ai-config-item label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+            transition: color 0.3s;
+        }
+
+        body.dark-theme .ai-config-item label {
+            color: #e0e0e0;
+        }
+
+        .ai-config-item input[type="text"],
+        .ai-config-item textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            font-family: inherit;
+            background: white;
+            color: #333;
+            transition: background 0.3s, border-color 0.3s, color 0.3s;
+        }
+
+        body.dark-theme .ai-config-item input[type="text"],
+        body.dark-theme .ai-config-item textarea {
+            background: #333;
+            border-color: #555;
+            color: #e0e0e0;
+        }
+
+        .ai-config-item textarea {
+            resize: vertical;
+        }
+
+        .ai-config-actions {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .ai-config-actions button {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: white;
+            color: #333;
+            cursor: pointer;
+            transition: background 0.3s, border-color 0.3s, color 0.3s;
+        }
+
+        .ai-config-actions button:hover {
+            background: #f5f5f5;
+        }
+
+        body.dark-theme .ai-config-actions button {
+            background: #333;
+            border-color: #555;
+            color: #e0e0e0;
+        }
+
+        body.dark-theme .ai-config-actions button:hover {
+            background: #444;
+        }
+
+        .ai-config-warning {
+            padding: 15px;
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 4px;
+            transition: background 0.3s, border-color 0.3s;
+        }
+
+        body.dark-theme .ai-config-warning {
+            background: #523e02;
+            border-color: #856404;
+        }
+
+        .ai-config-warning p {
+            margin: 5px 0;
+            font-size: 13px;
+            line-height: 1.6;
+            color: #856404;
+            transition: color 0.3s;
+        }
+
+        body.dark-theme .ai-config-warning p {
+            color: #ffecb5;
+        }
+
+        .ai-modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            padding: 20px;
+            border-top: 1px solid #ddd;
+            transition: border-color 0.3s;
+        }
+
+        body.dark-theme .ai-modal-footer {
+            border-top-color: #444;
+        }
+
+        .ai-modal-cancel,
+        .ai-modal-save {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+
+        .ai-modal-cancel {
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        .ai-modal-cancel:hover {
+            background: #e0e0e0;
+        }
+
+        .ai-modal-save {
+            background: #2196F3;
+            color: white;
+        }
+
+        .ai-modal-save:hover {
+            background: #1976D2;
+        }
+
+        body.dark-theme .ai-modal-cancel {
+            background: #444;
+            color: #e0e0e0;
+        }
+
+        body.dark-theme .ai-modal-cancel:hover {
+                    background: #555;
+                }
+        
+                /* AI修正按钮 */
+                .ai-correct-button {
+                    flex-shrink: 0;
+                    width: 32px;
+                    height: 32px;
+                    border: 1px solid #ddd;
+                    border-radius: 4px;
+                    background: white;
+                    cursor: pointer;
+                    font-size: 16px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    transition: all 0.3s;
+                }
+        
+                .ai-correct-button:hover {
+                    background: #f5f5f5;
+                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                }
+        
+                .ai-correct-button:disabled {
+                    opacity: 0.5;
+                    cursor: not-allowed;
+                }
+        
+                body.dark-theme .ai-correct-button {
+                    background: #333;
+                    border-color: #555;
+                }
+        
+                body.dark-theme .ai-correct-button:hover {
+                    background: #444;
+                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+                }
+            </style></head><body>
     <!-- 主题切换按钮 -->
     <button class="theme-toggle" onclick="toggleTheme()">🌙 切换主题</button>
+
+    <!-- AI修正按钮 -->
+    <button id="ai-correction-toggle" class="ai-toggle" onclick="openAISettingsModal()">🤖 AI修正</button>
 
     <div id="app">
         <!-- 显控区 -->
@@ -346,6 +630,52 @@
         </div>
     </div>
 
+    <!-- AI设置模态框 -->
+    <div id="ai-settings-modal" class="ai-modal hidden">
+        <div class="ai-modal-content">
+            <div class="ai-modal-header">
+                <h2>AI 设置</h2>
+                <button class="ai-modal-close" onclick="closeAISettingsModal()">×</button>
+            </div>
+            <div class="ai-modal-body">
+                <div class="ai-config-item">
+                    <label>
+                        <input type="checkbox" id="ai-enabled">
+                        启用AI修正
+                    </label>
+                </div>
+                <div class="ai-config-item">
+                    <label for="ai-api-url">Ollama API地址：</label>
+                    <input type="text" id="ai-api-url" placeholder="http://localhost:11434/api/generate">
+                </div>
+                <div class="ai-config-item">
+                    <label for="ai-model">模型名称：</label>
+                    <input type="text" id="ai-model" placeholder="qwen3:0.6b">
+                </div>
+                <div class="ai-config-item">
+                    <label for="ai-prompt">提示词模板：</label>
+                    <textarea id="ai-prompt" rows="8" placeholder="请输入提示词模板..."></textarea>
+                </div>
+                <div class="ai-config-actions">
+                    <button onclick="exportAIConfig()">导出配置</button>
+                    <button onclick="importAIConfig()">导入配置</button>
+                </div>
+                <div class="ai-config-warning">
+                    <p><strong>⚠️ 重要说明：</strong></p>
+                    <p>1. 此功能依赖 Ollama 服务</p>
+                    <p>   请确保 Ollama 已启动并运行在 http://localhost:11434</p>
+                    <p>2. 配置仅在当前页面有效</p>
+                    <p>   刷新网页后配置将丢失</p>
+                    <p>   请务必点击"导出配置"保存配置文件</p>
+                </div>
+            </div>
+            <div class="ai-modal-footer">
+                <button class="ai-modal-cancel" onclick="closeAISettingsModal()">取消</button>
+                <button class="ai-modal-save" onclick="saveAIConfig()">保存</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // 全局错误处理
         window.addEventListener('error', (event) => {
@@ -362,12 +692,120 @@
         let reconnectInterval = null;
         let updateTimeout = null; // 防抖定时器
 
+        // AI配置（全内存运行）
+        const DEFAULT_AI_CONFIG = {
+            aiCorrectionEnabled: false,
+            ollamaApiUrl: 'http://localhost:11434/api/generate',
+            ollamaModel: 'qwen3:0.6b',
+            aiPromptTemplate: '你是专业的语音识别文本修正助手，核心逻辑是先理解整句话的语义和使用场景，再针对性修正语音转文字的错误，仅输出修正后的纯文本，不要任何额外解释、标点或备注。\n严格遵循以下通用修正规则：\n1. 语义优先：基于整句话的语境和语义，判断并修正语音误听的同音字、错字、漏字、多字，尤其是技术场景的词汇（如英文/数字组合、专业术语）；\n2. 保留核心：完全保留原句的数字、英文词汇、专有名词、核心语义和基本句式，仅修正错误，不增删、不改写原意；\n3. 清理口语：移除无意义的语气词（嗯、啊、呢、吧、哦、呃、然后）、重复词汇（如我们我们、的的）、多余的无意义单字；\n4. 规范格式：修正英文/技术词汇间的标点错误（如逗号换空格）、重复标点，保持原句整体标点和句式结构基本不变；\n5. 拼写修正：基于语义修正技术词汇的字母重复、漏写、错写问题，还原正确的英文专业词汇。'
+        };
+
+        let aiConfig = { ...DEFAULT_AI_CONFIG };
+
         // 主题切换
         function toggleTheme() {
             document.body.classList.toggle('dark-theme');
             const isDark = document.body.classList.contains('dark-theme');
             const button = document.querySelector('.theme-toggle');
             button.textContent = isDark ? '☀️ 切换主题' : '🌙 切换主题';
+        }
+
+        // 导出AI配置
+        function exportAIConfig() {
+            const configJson = JSON.stringify(aiConfig, null, 2);
+            const blob = new Blob([configJson], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'airinputlan-ai-config.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // 导入AI配置
+        function importAIConfig() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'application/json';
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const config = JSON.parse(event.target.result);
+                        // 验证配置项
+                        if (typeof config.aiCorrectionEnabled === 'boolean' &&
+                                    typeof config.ollamaApiUrl === 'string' &&
+                                    typeof config.ollamaModel === 'string' &&
+                                    typeof config.aiPromptTemplate === 'string') {
+                                    aiConfig = config;
+                                    updateAICorrectionButton();
+                                } else {                            alert('配置文件格式错误！');
+                        }
+                    } catch (error) {
+                        alert('配置文件解析失败！');
+                    }
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
+
+        // 保存AI配置（从配置界面）
+        function saveAIConfig() {
+            const enabled = document.getElementById('ai-enabled').checked;
+            const apiUrl = document.getElementById('ai-api-url').value.trim();
+            const model = document.getElementById('ai-model').value.trim();
+            const prompt = document.getElementById('ai-prompt').value.trim();
+
+            if (!apiUrl || !model || !prompt) {
+                alert('请填写所有配置项！');
+                return;
+            }
+
+            aiConfig = {
+                aiCorrectionEnabled: enabled,
+                ollamaApiUrl: apiUrl,
+                ollamaModel: model,
+                aiPromptTemplate: prompt
+            };
+
+            updateAICorrectionButton();
+            closeAISettingsModal();
+        }
+
+        // 更新AI修正按钮状态
+        function updateAICorrectionButton() {
+            const button = document.getElementById('ai-correction-toggle');
+            if (button) {
+                button.textContent = aiConfig.aiCorrectionEnabled ? '🤖 AI修正（已启用）' : '🤖 AI修正';
+            }
+        }
+
+        // 打开AI设置模态框
+        function openAISettingsModal() {
+            const modal = document.getElementById('ai-settings-modal');
+            if (!modal) return;
+
+            // 填充当前配置
+            document.getElementById('ai-enabled').checked = aiConfig.aiCorrectionEnabled;
+            document.getElementById('ai-api-url').value = aiConfig.ollamaApiUrl;
+            document.getElementById('ai-model').value = aiConfig.ollamaModel;
+            document.getElementById('ai-prompt').value = aiConfig.aiPromptTemplate;
+
+            modal.classList.remove('hidden');
+        }
+
+        // 关闭AI设置模态框
+        function closeAISettingsModal() {
+            const modal = document.getElementById('ai-settings-modal');
+            if (modal) {
+                modal.classList.add('hidden');
+            }
         }
 
         // HTML 转义函数，防止 XSS 攻击
@@ -690,10 +1128,37 @@ async function loadServerInfo() {
 
         // 创建卡片
         function createCard(text) {
+            // 创建卡片包装器
+            const cardWrapper = document.createElement('div');
+            cardWrapper.style.display = 'flex';
+            cardWrapper.style.alignItems = 'center';
+            cardWrapper.style.gap = '10px';
+            cardWrapper.style.marginBottom = '16px';
+
+            // AI修正按钮（仅在启用时显示）- 放在卡片外面
+            const aiButton = document.createElement('button');
+            aiButton.className = 'ai-correct-button';
+            aiButton.textContent = '🤖';
+            aiButton.title = 'AI修正';
+            aiButton.style.display = aiConfig.aiCorrectionEnabled ? 'block' : 'none';
+            aiButton.onclick = (e) => {
+                e.stopPropagation();
+                correctCardWithAI(cardWrapper);
+            };
+
+            // 创建卡片
             const card = document.createElement('div');
             card.className = 'card';
-            // 使用 innerHTML 显示高亮后的内容
-            card.innerHTML = highlightDuplicates(text);
+            card.style.flex = '1';
+            card.style.marginBottom = '0';
+
+            // 卡片内容
+            const cardContent = document.createElement('div');
+            cardContent.className = "card-content";
+            cardContent.innerHTML = highlightDuplicates(text);
+
+            card.appendChild(cardContent);
+
             // 保存原始文本，用于编辑
             card.dataset.originalText = text;
 
@@ -711,12 +1176,88 @@ async function loadServerInfo() {
                 enterEditMode(card, currentText);
             };
 
-            return card;
+            // 将AI按钮和卡片添加到包装器
+            cardWrapper.appendChild(aiButton);
+            cardWrapper.appendChild(card);
+
+            return cardWrapper;
+        }
+
+        // AI修正卡片
+        async function correctCardWithAI(cardWrapper) {
+            const card = cardWrapper.querySelector('.card');
+            const originalText = card.dataset.originalText;
+            if (!originalText) {
+                alert('没有可修正的文本！');
+                return;
+            }
+
+            const aiButton = cardWrapper.querySelector('.ai-correct-button');
+            const cardContent = card.querySelector('.card-content');
+
+            // 显示加载状态
+            aiButton.textContent = '⏳';
+            aiButton.disabled = true;
+            const originalContent = cardContent.innerHTML;
+            cardContent.innerHTML = '<span style="color: #999;">正在修正...</span>';
+
+            try {
+                // 构建提示词（自动追加待修正文本）
+                const prompt = aiConfig.aiPromptTemplate + '\n\n待修正文本：' + originalText;
+
+                // 调用Ollama API
+                const response = await fetch(aiConfig.ollamaApiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        model: aiConfig.ollamaModel,
+                        prompt: prompt,
+                        stream: false,
+                        options: {
+                            temperature: 0.0,
+                            top_p: 1.0,
+                            num_ctx: 2048
+                        }
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                const fixedText = data.response;
+
+                if (!fixedText || fixedText.trim() === '') {
+                    throw new Error('AI返回空结果');
+                }
+
+                // 更新卡片内容
+                            card.dataset.originalText = fixedText;
+                            cardContent.innerHTML = highlightDuplicates(fixedText);
+                            copyToClipboard(fixedText);
+                        } catch (error) {                console.error('AI修正失败:', error);
+                alert(`AI修正失败：${error.message}\n请检查Ollama服务是否正常运行`);
+                // 恢复原始内容
+                cardContent.innerHTML = originalContent;
+            } finally {
+                // 恢复按钮状态
+                aiButton.textContent = '🤖';
+                aiButton.disabled = false;
+            }
         }
 
         // 进入编辑模式
         function enterEditMode(card, originalText) {
             card.classList.add('editing');
+            
+            // 获取卡片内容容器
+            const cardContent = card.querySelector('.card-content');
+            const aiButton = card.querySelector('.ai-correct-button');
+            
+            // 创建textarea
             const textarea = document.createElement('textarea');
             textarea.value = originalText;
             textarea.style.width = '100%';
@@ -727,8 +1268,10 @@ async function loadServerInfo() {
             textarea.style.outline = 'none';
             textarea.style.backgroundColor = 'transparent';
             textarea.style.overflow = 'hidden'; // 隐藏滚动条
-            card.textContent = '';
-            card.appendChild(textarea);
+            
+            // 清空卡片内容容器，保留AI按钮
+            cardContent.innerHTML = '';
+            cardContent.appendChild(textarea);
             textarea.focus();
 
             // 自适应高度函数
@@ -747,13 +1290,13 @@ async function loadServerInfo() {
                 const newText = textarea.value.trim();
                 if (newText && newText !== originalText) {
                     // 更新卡片内容（带高亮）
-                    card.innerHTML = highlightDuplicates(newText);
+                    cardContent.innerHTML = highlightDuplicates(newText);
                     // 更新 data-original-text 属性
                     card.dataset.originalText = newText;
                     copyToClipboard(newText);
                 } else {
                     // 恢复原始内容（带高亮）
-                    card.innerHTML = highlightDuplicates(originalText);
+                    cardContent.innerHTML = highlightDuplicates(originalText);
                 }
                 card.classList.remove('editing');
             };
@@ -761,7 +1304,7 @@ async function loadServerInfo() {
             textarea.onblur = confirmEdit;
             textarea.onkeydown = (e) => {
                 if (e.key === 'Escape') {
-                    card.innerHTML = highlightDuplicates(originalText);
+                    cardContent.innerHTML = highlightDuplicates(originalText);
                     card.classList.remove('editing');
                 }
             };
