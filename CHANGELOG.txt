@@ -6,6 +6,24 @@ AirInputLan 更新日志 / Changelog
 This document records the update history of all AirInputLan versions.
 
 
+v1.2.2 (2026-01-26)
+-------------------
+
+新增功能 / New Features:
+  * 添加自动 AI 修正功能
+    - 支持手动和自动两种 AI 修正模式
+    - 手动模式：点击卡片左侧 AI 按钮修正
+    - 自动模式：卡片生成后自动修正，显示"正在修正..."提示
+    - 修正完成后自动更新卡片内容
+    - 简化界面，移除"启用AI修正"复选框
+  * Add automatic AI correction feature
+    - Support manual and automatic AI correction modes
+    - Manual mode: Click AI button on left side of card to correct
+    - Automatic mode: Automatically correct after card generation, show "Correcting..." hint
+    - Automatically update card content after correction
+    - Simplify interface, remove "Enable AI Correction" checkbox
+
+
 v1.2.1 (2026-01-26)
 -------------------
 

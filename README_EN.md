@@ -355,18 +355,7 @@ go-lang/
 
 ## 📦 Version History
 
-### v1.2.1 (Current Version)
-
-**Bug Fixes:**
-- 🐛 Fixed multi-PC access issue
-  - Now supports one mobile input, multiple PCs output simultaneously
-  - Multiple PCs accessing `/pc` page can display and receive messages normally
-
-**Optimizations:**
-- ✨ Extract PC end CSS to standalone file
-- ✨ Extract QRCode.js to standalone file
-
-### v1.2.0
+### v1.2.0 (Current Version)
 
 **New Features:**
 - ✅ Local AI correction feature (requires Ollama support)

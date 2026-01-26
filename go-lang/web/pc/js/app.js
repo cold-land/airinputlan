@@ -340,6 +340,11 @@ function addCard(text) {
 
     // 滚动到底部
     container.scrollTop = container.scrollHeight;
+
+    // 自动 AI 修正
+    if (aiConfig.aiCorrectionMode === 'auto') {
+        correctCardWithAI(card, true);
+    }
 }
 
 // 创建卡片
@@ -356,7 +361,8 @@ function createCard(text) {
     aiButton.className = 'ai-correct-button';
     aiButton.textContent = '🤖';
     aiButton.title = 'AI修正';
-    aiButton.style.display = aiConfig.aiCorrectionEnabled ? 'block' : 'none';
+    // AI 按钮始终显示
+    aiButton.style.display = 'block';
     aiButton.onclick = (e) => {
         e.stopPropagation();
         correctCardWithAI(cardWrapper);
@@ -400,20 +406,33 @@ function createCard(text) {
 }
 
 // AI修正卡片
-async function correctCardWithAI(cardWrapper) {
+async function correctCardWithAI(cardWrapper, isAutoMode = false) {
     const card = cardWrapper.querySelector('.card');
     const originalText = card.dataset.originalText;
     if (!originalText) {
-        alert('没有可修正的文本！');
+        if (!isAutoMode) {
+            alert('没有可修正的文本！');
+        }
         return;
     }
 
     const aiButton = cardWrapper.querySelector('.ai-correct-button');
     const cardContent = card.querySelector('.card-content');
 
-    // 显示加载状态
-    aiButton.textContent = '⏳';
-    aiButton.disabled = true;
+    // 自动模式：显示"正在修正"提示
+    // 手动模式：按钮显示加载状态
+    if (isAutoMode) {
+        // 在卡片右上角添加"正在修正"提示
+        const statusSpan = document.createElement('span');
+        statusSpan.className = 'ai-correction-status';
+        statusSpan.textContent = '🤖 正在修正...';
+        statusSpan.style.cssText = 'position: absolute; top: 5px; right: 5px; font-size: 12px; color: #999;';
+        cardWrapper.style.position = 'relative';
+        cardWrapper.appendChild(statusSpan);
+    } else {
+        aiButton.textContent = '⏳';
+        aiButton.disabled = true;
+    }
     const originalContent = cardContent.innerHTML;
     cardContent.innerHTML = '<span style="color: #999;">正在修正...</span>';
 
@@ -461,8 +480,18 @@ async function correctCardWithAI(cardWrapper) {
         cardContent.innerHTML = originalContent;
     } finally {
         // 恢复按钮状态
-        aiButton.textContent = '🤖';
-        aiButton.disabled = false;
+        if (!isAutoMode) {
+            aiButton.textContent = '🤖';
+            aiButton.disabled = false;
+        }
+        
+        // 移除"正在修正"提示
+        if (isAutoMode) {
+            const statusSpan = cardWrapper.querySelector('.ai-correction-status');
+            if (statusSpan) {
+                statusSpan.remove();
+            }
+        }
     }
 }
 

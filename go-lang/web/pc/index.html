@@ -53,10 +53,15 @@
                 <button class="ai-modal-close" onclick="closeAISettingsModal()">×</button>
             </div>
             <div class="ai-modal-body">
+
                 <div class="ai-config-item">
-                    <label>
-                        <input type="checkbox" id="ai-enabled">
-                        启用AI修正
+                    <label style="display: inline-block; margin-right: 20px;">
+                        <input type="radio" name="ai-mode" id="ai-mode-manual" value="manual">
+                        手动AI修正
+                    </label>
+                    <label style="display: inline-block;">
+                        <input type="radio" name="ai-mode" id="ai-mode-auto" value="auto">
+                        自动AI修正
                     </label>
                 </div>
                 <div class="ai-config-item">
