@@ -17,7 +17,6 @@ import (
 	"os/exec"
 	"os/signal"
 	"runtime"
-	"strings"
 	"sync"
 	"syscall"
 	"time"
@@ -110,7 +109,7 @@ func main() {
 	httpServer = network.NewHttpServer(0, "0.0.0.0")
 
 	// 注册路由 / Register routes
-	httpServer.HandleFunc("/", handleIndex) // Auto-detect based on client IP
+	httpServer.HandleFunc("/", handleMobileIndex) // 默认为手机端
 	httpServer.HandleFunc("/pc", handlePCIndex)
 	httpServer.HandleFunc("/mobile", handleMobileIndex)
 	httpServer.HandleFunc("/ws", sseServer.HandleSSE) // Keep /ws for backward compatibility
@@ -146,7 +145,7 @@ func main() {
 	fmt.Println()
 
 	// 自动打开浏览器访问电脑端界面 / Auto-open browser to access PC interface
-	pcURL := fmt.Sprintf("http://127.0.0.1:%d/", port)
+	pcURL := fmt.Sprintf("http://127.0.0.1:%d/pc", port)
 	network.LogInfo("自动打开浏览器: %s", pcURL)
 	openBrowser(pcURL)
 
@@ -162,47 +161,6 @@ func main() {
 
 	// 等待退出信号 / Wait for exit signal
 	waitForExit(httpServer)
-}
-
-// handleIndex 根据访问 IP 自动判断显示哪个页面
-func handleIndex(w http.ResponseWriter, r *http.Request) {
-	// 获取客户端 IP / Get client IP
-	clientIP := getClientIP(r)
-	network.LogFormat("接收", "HTTP", "客户端 --> 服务端", "收到请求: %s from %s", r.URL.Path, clientIP)
-
-	// 判断是否为本地访问 / Determine if local access
-	if isLocalIP(clientIP) {
-		// 本地访问，显示电脑端页面 / Local access, show PC interface
-		network.LogFormat("处理", "HTTP", "服务端", "本地访问，显示电脑端页面")
-		handlePCIndex(w, r)
-	} else {
-		// 远程访问，显示手机端页面 / Remote access, show mobile interface
-		network.LogFormat("处理", "HTTP", "服务端", "远程访问，显示手机端页面")
-		handleMobileIndex(w, r)
-	}
-}
-
-// getClientIP 获取客户端 IP
-func getClientIP(r *http.Request) string {
-	// 优先从 X-Forwarded-For 获取 / Prefer X-Forwarded-For header
-	if xff := r.Header.Get("X-Forwarded-For"); xff != "" {
-		return xff
-	}
-	
-	// 从 RemoteAddr 获取 / Get from RemoteAddr
-	if r.RemoteAddr != "" {
-		lastColon := strings.LastIndex(r.RemoteAddr, ":")
-		if lastColon > 0 {
-			return r.RemoteAddr[:lastColon]
-		}
-	}
-	
-	return ""
-}
-
-// isLocalIP 判断是否为本地 IP
-func isLocalIP(ip string) bool {
-	return ip == "127.0.0.1" || ip == "::1" || ip == "localhost"
 }
 
 // handlePCIndex 处理电脑端首页
@@ -222,42 +180,33 @@ func handlePCIndex(w http.ResponseWriter, r *http.Request) {
 // handleMobileIndex 处理手机端首页
 func handleMobileIndex(w http.ResponseWriter, r *http.Request) {
 	network.LogFormat("接收", "HTTP", "手机端 --> 服务端", "请求 Mobile 页面: %s", r.URL.Path)
-	
-	// 获取客户端 IP
-	clientIP := getClientIP(r)
-	
-	// 检查是否已有手机端连接
-	if !isLocalIP(clientIP) {
-		// 远程设备（手机端），检查是否已有其他远程设备连接
-		hasRemoteClient := false
-		isSameIP := false  // 检查是否是同一 IP
-		
-		sseServer.RLock()
-		for _, c := range sseServer.Clients {
-			if !isLocalIP(c.IP) {
-				hasRemoteClient = true
-				if c.IP == clientIP {
-					isSameIP = true  // 是同一 IP
-				}
-			}
+
+	// 检查是否已有手机端连接（只检查远程客户端）
+	sseServer.RLock()
+	hasRemoteClient := false
+	for _, c := range sseServer.Clients {
+		// 只检查远程客户端（非本地 IP）
+		if c.IP != "127.0.0.1" && c.IP != "::1" && c.IP != "localhost" {
+			hasRemoteClient = true
+			break
 		}
-		sseServer.RUnlock()
-		
-		// 如果有远程客户端且不是同一 IP，拒绝连接
-		if hasRemoteClient && !isSameIP {
-			network.LogFormat("拒绝", "HTTP", "服务端", "拒绝连接：已有手机端连接，IP: %s", clientIP)
-			// 返回错误页面
-			content, err := webFS.ReadFile("web/mobile/error.html")
-			if err != nil {
-				network.LogFormat("错误", "HTTP", "服务端", "读取错误页面失败: %v", err)
-				http.Error(w, "已有手机端连接，请稍后再试", http.StatusServiceUnavailable)
-				return
-			}
-			w.Header().Set("Content-Type", "text/html; charset=utf-8")
-			w.Header().Set("Access-Control-Allow-Origin", "*")
-			w.Write(content)
+	}
+	sseServer.RUnlock()
+
+	// 如果已有远程客户端，拒绝连接
+	if hasRemoteClient {
+		network.LogFormat("拒绝", "HTTP", "服务端", "拒绝连接：已有手机端连接")
+		// 返回错误页面
+		content, err := webFS.ReadFile("web/mobile/error.html")
+		if err != nil {
+			network.LogFormat("错误", "HTTP", "服务端", "读取错误页面失败: %v", err)
+			http.Error(w, "已有手机端连接，请稍后再试", http.StatusServiceUnavailable)
 			return
 		}
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Write(content)
+		return
 	}
 	
 	content, err := webFS.ReadFile("web/mobile/index.html")

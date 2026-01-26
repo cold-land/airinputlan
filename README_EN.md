@@ -355,24 +355,32 @@ go-lang/
 
 ## 📦 Version History
 
-### v1.1.2 (Current Version)
-
-**New Features:**
-- ✅ Define constants to replace magic numbers
-- ✅ Add frontend global error handling
-- ✅ Add frontend loading state display
+### v1.2.1 (Current Version)
 
 **Bug Fixes:**
-- 🐛 Fixed HTTP service Listener resource leak
-- 🐛 Fixed file lock release failure issue
-- 🐛 Fixed frontend timer leak risk
-- 🐛 Fixed mobile connection check logic, supports same device refresh reconnection
-- 🐛 Fixed card leading punctuation filtering issue
-- 🐛 Fixed PC end XSS security vulnerability
-- 🐛 Fixed global variable mobileSegmentMode concurrency safety issue
-- 🐛 Fixed SSE client connection management defect
+- 🐛 Fixed multi-PC access issue
+  - Now supports one mobile input, multiple PCs output simultaneously
+  - Multiple PCs accessing `/pc` page can display and receive messages normally
 
-### v1.1.1
+**Optimizations:**
+- ✨ Extract PC end CSS to standalone file
+- ✨ Extract QRCode.js to standalone file
+
+### v1.2.0
+
+**New Features:**
+- ✅ Local AI correction feature (requires Ollama support)
+  - Add "🤖 AI Correction" button in top-right corner, click to open settings
+  - AI correction button appears on left side of each history card (when enabled)
+  - Click button to correct card content, automatically copy to clipboard after correction
+  - Support configuration export/import (download JSON file)
+  - Full memory operation, need to re-import configuration after page refresh
+
+**Important Notes:**
+- ⚠️ This feature depends on Ollama service, please ensure Ollama is started and running at http://localhost:11434
+- ⚠️ Configuration only valid in current page, configuration will be lost after page refresh, please click "Export Configuration" to save configuration file
+
+### v1.1.2
 
 **New Features:**
 - ✅ No internet connection needed (QR code generated locally, removed external API dependency)

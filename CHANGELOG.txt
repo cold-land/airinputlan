@@ -6,6 +6,45 @@ AirInputLan 更新日志 / Changelog
 This document records the update history of all AirInputLan versions.
 
 
+v1.2.1 (2026-01-26)
+-------------------
+
+修复问题 / Bug Fixes:
+  * 修复多 PC 端访问问题
+    - 修改路由逻辑，基于 URL 路径判断设备类型（不再基于 IP 地址）
+    - 访问 `/` 或 `/mobile` → 手机端（只能一个连接）
+    - 访问 `/pc` → PC 端（允许多个连接）
+    - 修复 SSE 连接限制，只限制手机端单用户
+    - 修复二维码显示问题，多个 PC 端都能正确隐藏二维码
+    - 修复消息广播问题，多个 PC 端都能接收手机输入内容
+  * Fixed multi-PC access issue
+    - Modify routing logic, device type determined by URL path (not IP address)
+    - Access `/` or `/mobile` → Mobile (only one connection allowed)
+    - Access `/pc` → PC (multiple connections allowed)
+    - Fix SSE connection limit, only restrict mobile single-user
+    - Fix QR code display issue, multiple PCs can correctly hide QR code
+    - Fix message broadcast issue, multiple PCs can receive mobile input
+
+代码优化 / Code Optimization:
+  * 提取 PC 端 CSS 到独立文件
+    - 创建 `web/pc/css/style.css` 文件（590 行）
+    - HTML 文件从 1337 行减少到 745 行（44% 减少）
+    - 添加静态文件服务器支持，自动打包静态资源
+  * Extract PC end CSS to standalone file
+    - Create `web/pc/css/style.css` file (590 lines)
+    - HTML file reduced from 1337 to 745 lines (44% reduction)
+    - Add static file server support, auto-package static resources
+
+  * 提取 QRCode.js 到独立文件
+    - 创建 `web/pc/js/qrcode.min.js` 文件
+    - 将内嵌的 QRCode.js 库改为外部引用
+    - 便于维护和更新
+  * Extract QRCode.js to standalone file
+    - Create `web/pc/js/qrcode.min.js` file
+    - Change embedded QRCode.js library to external reference
+    - Easy to maintain and update
+
+
 v1.2.0 (2026-01-26)
 -------------------
 

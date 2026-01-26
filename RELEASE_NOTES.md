@@ -1,10 +1,10 @@
-# AirInputLan v1.2.0
+# AirInputLan v1.2.1
 
 ## 🎉 新版本发布 / New Release
 
-这是 AirInputLan v1.2.0 版本，新增本地AI修正功能，需要Ollama支持。
+这是 AirInputLan v1.2.1 版本，修复多 PC 端访问问题，优化代码结构。
 
-This is AirInputLan v1.2.0 release, adding local AI correction feature, requires Ollama support.
+This is AirInputLan v1.2.1 release, fixing multi-PC access issue and optimizing code structure.
 
 ## ⚠️ 注意事项 / Important Notes
 
@@ -13,6 +13,17 @@ This is AirInputLan v1.2.0 release, adding local AI correction feature, requires
 ## MacOS and Linux Users please run in terminal, DO NOT double-click to run
 
 ## ✨ 新功能 / New Features
+
+### v1.2.1 (2026-01-26)
+
+**修复问题 / Bug Fixes**:
+- 🐛 修复多 PC 端访问问题
+  - 现在支持一台手机输入，多台电脑同时输出
+  - 多台电脑访问 `/pc` 页面都能正常显示和接收消息
+
+**优化 / Optimizations**:
+- ✨ 提取 PC 端 CSS 到独立文件
+- ✨ 提取 QRCode.js 到独立文件
 
 ### v1.2.0 (2026-01-26)
 

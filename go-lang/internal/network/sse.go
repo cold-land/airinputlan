@@ -250,20 +250,29 @@ func (s *SSEServer) HandleSSE(w http.ResponseWriter, r *http.Request) {
 
 	LogFormat("接收", "SSE", connType+" --> 服务端", "收到连接请求，IP: %s", clientIP)
 
-	// 如果是远程设备（手机端），检查是否已有其他远程设备连接
-	// If remote device (mobile), check if there are already other remote devices
-	if !isLocalIP(clientIP) {
+	// 检查设备类型（通过查询参数 type 判断）
+	// Check device type (via query parameter type)
+	clientType := r.URL.Query().Get("type")
+	isMobileDevice := clientType == "mobile"
+
+	// 如果是手机端，检查是否已有其他手机端连接
+	// If mobile device, check if there are already other mobile devices
+	if isMobileDevice {
 		s.mu.RLock()
-		hasRemoteClient := false
+		hasMobileClient := false
 		for _, c := range s.Clients {
+			// 检查是否已有手机端连接（通过查询参数判断）
+			// Check if there are already mobile clients (via query parameter)
+			// 注意：这里我们无法从 SSEClient 获取查询参数，所以只能通过 IP 判断
+			// Note: we cannot get query parameters from SSEClient, so we judge by IP
 			if !isLocalIP(c.IP) {
-				hasRemoteClient = true
+				hasMobileClient = true
 				break
 			}
 		}
 		s.mu.RUnlock()
 
-		if hasRemoteClient {
+		if hasMobileClient {
 			LogFormat("拒绝", "SSE", "服务端", "拒绝 SSE 连接：已有手机端连接，IP: %s", clientIP)
 			// 返回错误状态
 			w.WriteHeader(http.StatusServiceUnavailable)

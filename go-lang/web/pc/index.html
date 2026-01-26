@@ -418,7 +418,9 @@ async function loadServerInfo() {
             }
 
             console.log('建立 SSE 连接...');
-            eventSource = new EventSource('/ws');
+            // type=pc 表示这是 PC 端连接，允许多个 PC 端同时连接
+            // type=pc indicates this is a PC connection, allowing multiple PCs to connect simultaneously
+            eventSource = new EventSource('/ws?type=pc');
 
             eventSource.onopen = () => {
                 console.log('SSE 连接已建立');

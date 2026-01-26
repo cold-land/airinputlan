@@ -619,7 +619,9 @@
             // 清空输入框
             clearTextarea();
 
-            eventSource = new EventSource('/ws');
+            // type=mobile 表示这是手机端连接，只允许一个手机端连接
+            // type=mobile indicates this is a mobile connection, only allowing one mobile device to connect
+            eventSource = new EventSource('/ws?type=mobile');
 
             eventSource.onopen = () => {
                 console.log('连接已建立');
