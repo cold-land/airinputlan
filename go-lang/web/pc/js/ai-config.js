@@ -63,6 +63,61 @@ function importAIConfig() {
     input.click();
 }
 
+// 测试在线 AI 配置
+async function testOnlineAIConfig(apiKey, model) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10秒超时
+
+    try {
+        const response = await fetch('https://open.bigmodel.cn/api/paas/v4/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`
+            },
+            body: JSON.stringify({
+                model: model,
+                messages: [
+                    {
+                        role: "user",
+                        content: "测试"
+                    }
+                ],
+                max_tokens: 10,
+                temperature: 0.0,
+                thinking: {
+                    type: "disabled"
+                },
+                stream: true
+            }),
+            signal: controller.signal
+        });
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(`HTTP ${response.status}: ${errorData.error?.message || response.statusText}`);
+        }
+
+        // 读取流式响应（只需要读取第一个数据块即可）
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        const { done, value } = await reader.read();
+        
+        if (done) {
+            throw new Error('AI返回空结果');
+        }
+
+        return true;
+    } catch (error) {
+        if (error.name === 'AbortError') {
+            throw new Error('连接超时，请检查网络连接');
+        }
+        throw error;
+    }
+}
+
 // 保存AI配置（从配置界面）
 function saveAIConfig() {
     const mode = document.querySelector('input[name="ai-mode"]:checked')?.value || 'manual';
@@ -70,7 +125,6 @@ function saveAIConfig() {
     const prompt = document.getElementById('ai-prompt').value.trim();
 
     if (!prompt) {
-        alert('请填写所有配置项！');
         return;
     }
 
@@ -80,7 +134,6 @@ function saveAIConfig() {
         const localModel = document.getElementById('ai-local-model').value.trim();
 
         if (!localApiUrl || !localModel) {
-            alert('请填写本地 AI 配置项！');
             return;
         }
 
@@ -94,13 +147,14 @@ function saveAIConfig() {
             onlineModel: aiConfig.onlineModel,
             aiPromptTemplate: prompt
         };
+
+        closeAISettingsModal();
     } else {
         const onlineProvider = document.getElementById('ai-online-provider').value;
         const onlineApiKey = document.getElementById('ai-online-api-key').value.trim();
         const onlineModel = document.getElementById('ai-online-model').value.trim();
 
         if (!onlineApiKey) {
-            alert('请填写在线 AI API Key！');
             return;
         }
 
@@ -114,9 +168,15 @@ function saveAIConfig() {
             onlineModel: onlineModel,
             aiPromptTemplate: prompt
         };
-    }
 
-    closeAISettingsModal();
+        // 测试在线 AI 配置
+        testOnlineAIConfig(onlineApiKey, onlineModel).then(() => {
+            closeAISettingsModal();
+        }).catch((error) => {
+            console.error('配置验证失败:', error);
+            closeAISettingsModal();
+        });
+    }
 }
 
 // 更新AI修正按钮状态
@@ -135,20 +195,20 @@ function openAISettingsModal() {
     // 填充当前配置
     document.getElementById('ai-mode-manual').checked = aiConfig.aiCorrectionMode === 'manual';
     document.getElementById('ai-mode-auto').checked = aiConfig.aiCorrectionMode === 'auto';
-    
+
     // AI 提供商
-    document.getElementById('ai-provider-local').checked = aiConfig.aiProvider === 'local';
     document.getElementById('ai-provider-online').checked = aiConfig.aiProvider === 'online';
-    
+    document.getElementById('ai-provider-local').checked = aiConfig.aiProvider === 'local';
+
     // 本地 AI 配置
     document.getElementById('ai-local-api-url').value = aiConfig.localApiUrl;
     document.getElementById('ai-local-model').value = aiConfig.localModel;
-    
+
     // 在线 AI 配置
     document.getElementById('ai-online-provider').value = aiConfig.onlineProvider;
     document.getElementById('ai-online-api-key').value = aiConfig.onlineApiKey;
     document.getElementById('ai-online-model').value = aiConfig.onlineModel;
-    
+
     // 通用配置
     document.getElementById('ai-prompt').value = aiConfig.aiPromptTemplate;
 

@@ -424,6 +424,8 @@
         }
 
         .ai-config-item input[type="text"],
+        .ai-config-item input[type="password"],
+        .ai-config-item select,
         .ai-config-item textarea {
             width: 100%;
             padding: 10px;
@@ -437,6 +439,8 @@
         }
 
         body.dark-theme .ai-config-item input[type="text"],
+        body.dark-theme .ai-config-item input[type="password"],
+        body.dark-theme .ai-config-item select,
         body.dark-theme .ai-config-item textarea {
             background: #333;
             border-color: #555;

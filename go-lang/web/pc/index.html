@@ -68,12 +68,12 @@
                 <!-- AI 提供商选择 -->
                 <div class="ai-config-item">
                     <label style="display: inline-block; margin-right: 20px;">
-                        <input type="radio" name="ai-provider" id="ai-provider-local" value="local" onchange="toggleAIProviderConfig()">
-                        本地AI（Ollama）
+                        <input type="radio" name="ai-provider" id="ai-provider-online" value="online" onchange="toggleAIProviderConfig()">
+                        在线AI（智谱AI）
                     </label>
                     <label style="display: inline-block;">
-                        <input type="radio" name="ai-provider" id="ai-provider-online" value="online" onchange="toggleAIProviderConfig()">
-                        在线API（智谱AI）
+                        <input type="radio" name="ai-provider" id="ai-provider-local" value="local" onchange="toggleAIProviderConfig()">
+                        本地AI（Ollama）
                     </label>
                 </div>
 
@@ -91,15 +91,13 @@
 
                 <!-- 在线 AI 配置 -->
                 <div id="ai-online-config" class="ai-config-section">
-                    <div class="ai-config-item">
-                        <label for="ai-online-provider">在线提供商：</label>
-                        <select id="ai-online-provider">
-                            <option value="zhipu">智谱AI（GLM 4.7 Flash）</option>
+                    <div class="ai-config-item" style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                        <label for="ai-online-provider" style="white-space: nowrap;">AI提供商：</label>
+                        <select id="ai-online-provider" style="flex: 0 0 120px; min-width: 120px;">
+                            <option value="zhipu">智谱AI</option>
                         </select>
-                    </div>
-                    <div class="ai-config-item">
-                        <label for="ai-online-api-key">API Key：</label>
-                        <input type="password" id="ai-online-api-key" placeholder="请输入智谱AI API Key">
+                        <label for="ai-online-api-key" style="white-space: nowrap;">API Key：</label>
+                        <input type="password" id="ai-online-api-key" placeholder="请输入智谱AI API Key" style="flex: 1; min-width: 200px;">
                     </div>
                     <div class="ai-config-item">
                         <label for="ai-online-model">模型名称：</label>
@@ -118,11 +116,9 @@
                 </div>
                 <div class="ai-config-warning">
                     <p><strong>⚠️ 重要说明：</strong></p>
-                    <p>1. 本地AI：依赖 Ollama 服务，请确保已启动</p>
+                    <p>1. 配置仅在当前页面有效，刷新网页后配置将丢失，请务必点击"导出配置"保存配置文件</p>
                     <p>2. 在线API：依赖网络连接，需要有效的 API Key</p>
-                    <p>3. 配置仅在当前页面有效</p>
-                    <p>   刷新网页后配置将丢失</p>
-                    <p>   请务必点击"导出配置"保存配置文件</p>
+                    <p>3. 本地AI：依赖 Ollama 服务，请确保已启动</p>
                 </div>
             </div>
             <div class="ai-modal-footer">
