@@ -6,6 +6,27 @@ AirInputLan 更新日志 / Changelog
 This document records the update history of all AirInputLan versions.
 
 
+v1.2.5 (2026-01-27)
+-------------------
+
+新增功能 / New Features:
+  * 新增阿里心流在线 AI 提供商
+    - 支持阿里心流作为第二个在线 AI 提供商选项
+    - 每个提供商有独立的 API Key 和模型配置
+    - 新增 4 个阿里心流模型：iFlow-ROME、Qwen3-Max、Kimi-K2、DeepSeek-V3-671B
+  * Add Ali iFlow online AI provider
+    - Support Ali iFlow as the second online AI provider option
+    - Each provider has independent API key and model configuration
+    - Add 4 iFlow models: iFlow-ROME, Qwen3-Max, Kimi-K2, DeepSeek-V3-671B
+
+  * 恢复默认配置功能
+    - 添加"恢复默认配置"按钮，可重置所有 Local Storage 配置为默认值
+    - 需要输入 "Yes" 进行二次确认，防止误操作
+  * Restore default configuration feature
+    - Add "Restore Default Config" button to reset all Local Storage configurations to default values
+    - Require "Yes" input confirmation to prevent accidental operations
+
+
 v1.2.4 (2026-01-27)
 -------------------
 

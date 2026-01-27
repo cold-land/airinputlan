@@ -73,7 +73,7 @@
                 <div class="ai-config-item">
                     <label style="display: inline-block; margin-right: 20px;">
                         <input type="radio" name="ai-provider" id="ai-provider-online" value="online" onchange="toggleAIProviderConfig()">
-                        在线AI（清华智谱）
+                        在线AI
                     </label>
                     <label style="display: inline-block;">
                         <input type="radio" name="ai-provider" id="ai-provider-local" value="local" onchange="toggleAIProviderConfig()">
@@ -96,22 +96,21 @@
                 <!-- 在线 AI 配置 -->
                 <div id="ai-online-config" class="ai-config-section">
                     <div class="ai-config-item" style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                        <label for="ai-online-provider" style="white-space: nowrap;">AI提供商：</label>
-                        <select id="ai-online-provider" style="flex: 0 0 120px; min-width: 120px;">
+                        <label for="ai-online-provider" style="white-space: nowrap;">AI提供商</label>
+                        <select id="ai-online-provider" style="flex: 0 0 120px; min-width: 120px;" onchange="handleOnlineProviderChange()">
                             <option value="zhipu">清华智谱</option>
+                            <option value="iflow">阿里心流</option>
                         </select>
-                        <label for="ai-online-api-key" style="white-space: nowrap;">API Key：</label>
-                        <input type="password" id="ai-online-api-key" placeholder="请输入清华智谱 API Key" style="flex: 1; min-width: 200px;">
+                        <label for="ai-online-api-key" style="white-space: nowrap;">API Key</label>
+                        <input type="password" id="ai-online-api-key" placeholder="请输入 API Key" style="flex: 1; min-width: 200px;">
                     </div>
                     <div class="ai-config-item">
                         <label for="ai-online-model">模型名称：</label>
                         <div style="display: flex; gap: 10px;">
                             <select id="ai-online-model-select" style="flex: 0 0 200px;">
                                 <option value="">选择模型...</option>
-                                <option value="glm-4-flash-250414" selected>GLM-4-Flash-250414</option>
-                                <option value="glm-4.7-flash">GLM-4.7-Flash</option>
                             </select>
-                            <input type="text" id="ai-online-model" placeholder="或手动输入" value="glm-4-flash-250414" style="flex: 1;">
+                            <input type="text" id="ai-online-model" placeholder="或手动输入" value="" style="flex: 1;">
                         </div>
                     </div>
                 </div>
@@ -131,6 +130,7 @@
                 </div>
             </div>
             <div class="ai-modal-footer">
+                <button class="ai-modal-clear" onclick="restoreDefaultConfig()">恢复默认配置</button>
                 <button class="ai-modal-cancel" onclick="closeAISettingsModal()">取消</button>
                 <button class="ai-modal-save" onclick="saveAIConfig()">保存</button>
             </div>

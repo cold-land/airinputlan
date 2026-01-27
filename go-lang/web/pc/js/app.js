@@ -505,7 +505,14 @@ async function correctCardWithAI(cardWrapper, isAutoMode = false) {
         }
     } catch (error) {
         console.error('AI修正失败:', error);
-        const providerName = aiConfig.aiProvider === 'local' ? 'Ollama' : '清华智谱';
+        let providerName = '未知';
+        if (aiConfig.aiProvider === 'local') {
+            providerName = 'Ollama';
+        } else if (aiConfig.onlineProvider === 'iflow') {
+            providerName = '阿里心流';
+        } else {
+            providerName = '清华智谱';
+        }
         alert(`AI修正失败：${error.message}\n请检查${providerName}服务是否正常运行`);
         // 恢复原始内容
         cardContent.innerHTML = originalContent;
@@ -633,45 +640,88 @@ async function callLocalAPI(prompt) {
     return data.response;
 }
 
-// 调用在线 API（智谱 AI）- 支持流式输出
+// 调用在线 API（智谱 AI / 阿里心流）- 支持流式输出
 async function callOnlineAPI(prompt, onChunk, onComplete) {
+    // 根据 provider 选择 API 地址和请求体
+    const provider = aiConfig.onlineProvider || 'zhipu';
+    const apiKey = aiConfig.onlineApiKeys && aiConfig.onlineApiKeys[provider];
+    const model = aiConfig.onlineModels && aiConfig.onlineModels[provider];
+
+    if (!apiKey) {
+        throw new Error(`未配置 ${provider} 的 API Key`);
+    }
+
+    if (!model) {
+        throw new Error(`未配置 ${provider} 的模型名称`);
+    }
+
+    let apiUrl = '';
+    let requestBody = {
+        model: model,
+        messages: [
+            {
+                role: "system",
+                content: aiConfig.aiPromptTemplate
+            },
+            {
+                role: "user",
+                content: prompt
+            }
+        ],
+        stream: true,
+        max_tokens: 1024,
+        temperature: 0.3
+    };
+
+    switch (provider) {
+        case 'iflow':
+            apiUrl = 'https://apis.iflow.cn/v1/chat/completions';
+            // 阿里心流不需要 thinking 参数
+            break;
+        case 'zhipu':
+        default:
+            apiUrl = 'https://open.bigmodel.cn/api/paas/v4/chat/completions';
+            // 清华智谱需要 thinking 参数
+            requestBody.thinking = {
+                type: "disabled"
+            };
+            break;
+    }
+
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 60000); // 60秒超时（流式输出可能需要更长时间）
 
     try {
-        const response = await fetch('https://open.bigmodel.cn/api/paas/v4/chat/completions', {
+        console.log('调用在线 API:', {
+            provider: provider,
+            apiUrl: apiUrl,
+            model: model,
+            apiKey: apiKey.substring(0, 10) + '...'
+        });
+
+        const response = await fetch(apiUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${aiConfig.onlineApiKey}`
+                'Authorization': `Bearer ${apiKey}`
             },
-            body: JSON.stringify({
-                model: aiConfig.onlineModel,
-                messages: [
-                    {
-                        role: "system",
-                        content: aiConfig.aiPromptTemplate
-                    },
-                    {
-                        role: "user",
-                        content: prompt
-                    }
-                ],
-                stream: true,  // 启用流式输出
-                max_tokens: 1024,
-                temperature: 0.3,
-                thinking: {
-                    type: "disabled"
-                }
-            }),
+            body: JSON.stringify(requestBody),
             signal: controller.signal
         });
 
         clearTimeout(timeoutId);
 
+        console.log('AI 响应状态:', response.status, response.statusText);
+
         if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            throw new Error(`HTTP ${response.status}: ${errorData.error?.message || response.statusText}`);
+            const errorText = await response.text();
+            console.error('AI 响应错误:', errorText);
+            try {
+                const errorData = JSON.parse(errorText);
+                throw new Error(`HTTP ${response.status}: ${errorData.error?.message || errorData.message || response.statusText}`);
+            } catch (e) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText} - ${errorText.substring(0, 200)}`);
+            }
         }
 
         let fullContent = '';
@@ -679,39 +729,72 @@ async function callOnlineAPI(prompt, onChunk, onComplete) {
         // 读取流式响应
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
+        let chunkCount = 0;
 
         while (true) {
             const { done, value } = await reader.read();
-            if (done) break;
+            if (done) {
+                console.log(`流式读取完成，共读取 ${chunkCount} 个数据块`);
+                break;
+            }
 
             // 解码数据块
             const chunk = decoder.decode(value, { stream: true });
-            const lines = chunk.split('\n');
+            chunkCount++;
+            console.log(`读取数据块 #${chunkCount}, 长度: ${chunk.length}`);
+            console.log(`AI 响应数据块: ${chunk}`);
 
-            for (const line of lines) {
-                if (line.startsWith('data: ')) {
-                    const data = line.slice(6); // 移除 'data: ' 前缀
-                    if (data === '[DONE]') {
-                        break; // 流式输出结束
-                    }
-
-                    try {
-                        const json = JSON.parse(data);
-                        if (json.choices && json.choices.length > 0) {
-                            const delta = json.choices[0].delta;
-                            if (delta.content) {
-                                fullContent += delta.content;
-                                // 实时更新卡片内容
-                                if (onChunk) {
-                                    onChunk(fullContent);
+            // 检查是否包含有效的 SSE 数据
+            if (chunk.includes('data:')) {
+                // 解析所有数据块
+                const lines = chunk.split('\n');
+                for (const line of lines) {
+                    if (line.startsWith('data:')) {
+                        const data = line.slice(5).trim(); // 移除 'data:' 前缀
+                        if (data === '[DONE]') {
+                            console.log('收到 [DONE] 信号');
+                            continue; // 流式输出结束
+                        }
+                        if (!data) {
+                            continue;
+                        }
+                        try {
+                            const json = JSON.parse(data);
+                            console.log('解析 JSON:', json);
+                            if (json.choices && json.choices.length > 0) {
+                                const delta = json.choices[0].delta;
+                                console.log('Delta 内容:', delta);
+                                // 检查是否有实际内容（content 或 reasoning_content）
+                                if (delta && (delta.content || delta.reasoning_content)) {
+                                    if (delta.content) {
+                                        fullContent += delta.content;
+                                        console.log(`累积内容长度: ${fullContent.length}, 新增: "${delta.content}"`);
+                                        // 实时更新卡片内容
+                                        if (onChunk) {
+                                            onChunk(fullContent);
+                                        }
+                                    }
+                                    if (delta.reasoning_content) {
+                                        console.log(`收到 reasoning_content: "${delta.reasoning_content}"`);
+                                    }
+                                } else if (delta && delta.role) {
+                                    // 只有 role，没有 content，继续等待
+                                    console.log(`收到 role 信息，继续等待 content: ${delta.role}`);
                                 }
                             }
+                        } catch (e) {
+                            console.error('解析 JSON 失败:', e, '数据:', data);
                         }
-                    } catch (e) {
-                        console.error('解析流式数据失败:', e);
                     }
                 }
             }
+        }
+
+        console.log('AI 响应完成，最终内容长度:', fullContent.length);
+        if (fullContent.length > 0) {
+            console.log('AI 响应内容预览:', fullContent.substring(0, 100) + (fullContent.length > 100 ? '...' : ''));
+        } else {
+            console.error('AI 响应内容为空！');
         }
 
         // 流式输出完成
