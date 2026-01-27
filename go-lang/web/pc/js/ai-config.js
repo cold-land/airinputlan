@@ -110,21 +110,27 @@ function handlePromptTemplateChange() {
     }
 }
 
-// 导出AI配置
+// 导出配置
 function exportAIConfig() {
-    const configJson = JSON.stringify(aiConfig, null, 2);
+    const config = {
+        aiConfig: aiConfig,
+        theme: document.body.classList.contains('dark-theme') ? 'dark' : 'light'
+    };
+    const configJson = JSON.stringify(config, null, 2);
     const blob = new Blob([configJson], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'airinputlan-ai-config.json';
+    a.download = 'airinputlan-config.json';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+    
+    showToast('配置已导出', 'success');
 }
 
-// 导入AI配置
+// 导入配置
 function importAIConfig() {
     const input = document.createElement('input');
     input.type = 'file';
@@ -136,18 +142,43 @@ function importAIConfig() {
         const reader = new FileReader();
         reader.onload = (event) => {
             try {
-                const config = JSON.parse(event.target.result);
-                // 验证配置项
-                if (typeof config.aiCorrectionMode === 'string' &&
-                            typeof config.ollamaApiUrl === 'string' &&
-                            typeof config.ollamaModel === 'string' &&
-                            typeof config.aiPromptTemplate === 'string') {
-                            aiConfig = config;
-                        } else {
-                            alert('配置文件格式错误！');
+                const data = JSON.parse(event.target.result);
+                
+                // 检查是否包含 aiConfig
+                if (!data.aiConfig) {
+                    showToast('配置文件格式错误：缺少 aiConfig', 'error');
+                    return;
                 }
+                
+                const config = data.aiConfig;
+                
+                // 应用配置（使用当前配置作为基础，导入的配置覆盖对应字段）
+                aiConfig = { ...aiConfig, ...config };
+                
+                // 应用主题设置
+                if (data.theme) {
+                    if (data.theme === 'dark') {
+                        document.body.classList.add('dark-theme');
+                    } else {
+                        document.body.classList.remove('dark-theme');
+                    }
+                    const button = document.querySelector('.theme-toggle');
+                    if (button) {
+                        button.textContent = data.theme === 'dark' ? '☀️ 切换主题' : '🌙 切换主题';
+                    }
+                }
+                
+                // 保存到 Local Storage
+                saveAIConfigToStorage(aiConfig);
+                if (data.theme) {
+                    saveTheme(data.theme);
+                }
+                
+                showToast('配置已导入', 'success');
+                
             } catch (error) {
-                alert('配置文件解析失败！');
+                console.error('配置导入失败:', error);
+                showToast('配置文件解析失败', 'error');
             }
         };
         reader.readAsText(file);
