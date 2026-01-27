@@ -19,6 +19,9 @@ function toggleTheme() {
     const isDark = document.body.classList.contains('dark-theme');
     const button = document.querySelector('.theme-toggle');
     button.textContent = isDark ? '☀️ 切换主题' : '🌙 切换主题';
+
+    // 保存主题到 Local Storage
+    saveTheme(isDark ? 'dark' : 'light');
 }
 
 // HTML 转义函数，防止 XSS 攻击
@@ -77,8 +80,37 @@ function init() {
     document.getElementById('history-cards').innerHTML = '';
     document.getElementById('current-input').textContent = '';
 
+    // 检测 Local Storage 是否可用
+    if (!isLocalStorageAvailable()) {
+        showToast('当前处于隐私模式，配置将无法保存', 'warning');
+    }
+
+    // 加载主题
+    loadThemeSettings();
+
+    // 加载 AI 配置
+    loadAISettings();
+
     loadServerInfo();
     setupEventSource();
+}
+
+// 加载主题设置
+function loadThemeSettings() {
+    const savedTheme = loadTheme();
+    if (savedTheme === 'dark') {
+        document.body.classList.add('dark-theme');
+        const button = document.querySelector('.theme-toggle');
+        if (button) {
+            button.textContent = '☀️ 切换主题';
+        }
+    }
+}
+
+// 加载 AI 配置
+function loadAISettings() {
+    // AI 配置的加载在 ai-config.js 中处理
+    // 这里只是确保 storage.js 和 ai-config.js 都已加载
 }
 
 // 加载服务器信息
@@ -473,7 +505,7 @@ async function correctCardWithAI(cardWrapper, isAutoMode = false) {
         }
     } catch (error) {
         console.error('AI修正失败:', error);
-        const providerName = aiConfig.aiProvider === 'local' ? 'Ollama' : '智谱AI';
+        const providerName = aiConfig.aiProvider === 'local' ? 'Ollama' : '清华智谱';
         alert(`AI修正失败：${error.message}\n请检查${providerName}服务是否正常运行`);
         // 恢复原始内容
         cardContent.innerHTML = originalContent;

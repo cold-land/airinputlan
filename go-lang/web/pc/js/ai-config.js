@@ -10,7 +10,7 @@ const DEFAULT_AI_CONFIG = {
     // 在线 AI 配置
     onlineProvider: 'zhipu',    // 在线提供商：'zhipu' / 'openai' 等
     onlineApiKey: '',
-    onlineModel: 'glm-4.7-flash',
+    onlineModel: 'glm-4-flash-250414',
     
     // 通用配置
     aiPromptTemplateId: 'default',  // 模板 ID
@@ -20,6 +20,37 @@ const DEFAULT_AI_CONFIG = {
 let aiConfig = { ...DEFAULT_AI_CONFIG };
 let lastTestedConfig = null; // 记录上次测试的配置
 let promptTemplates = []; // 提示词模板列表
+
+// 从 Local Storage 加载 AI 配置
+function loadAISettings() {
+    const savedConfig = loadAIConfigFromStorage();
+    if (savedConfig) {
+        aiConfig = { ...DEFAULT_AI_CONFIG, ...savedConfig };
+        console.log('AI 配置已从 Local Storage 加载');
+    }
+}
+
+// 后台预热在线 AI
+async function warmupOnlineAI() {
+    if (aiConfig.aiProvider === 'online' && aiConfig.onlineApiKey) {
+        try {
+            await testOnlineAIConfig(aiConfig.onlineApiKey, aiConfig.onlineModel);
+            console.log('在线 AI 预热成功');
+        } catch (e) {
+            console.log('在线 AI 预热失败:', e);
+        }
+    }
+}
+
+// 页面加载时加载配置
+window.addEventListener('DOMContentLoaded', () => {
+    loadAISettings();
+});
+
+// 页面加载完成后预热在线 AI
+window.addEventListener('load', () => {
+    warmupOnlineAI();
+});
 
 // 加载提示词模板
 async function loadPromptTemplates() {
@@ -224,7 +255,14 @@ function saveAIConfig() {
             aiPromptTemplate: prompt
         };
 
+        // 立即关闭窗口
         closeAISettingsModal();
+
+        // 保存到 Local Storage
+        saveAIConfigToStorage(aiConfig);
+
+        // 显示成功提示
+        showToast('配置已保存', 'success');
     } else {
         const onlineProvider = document.getElementById('ai-online-provider').value;
         const onlineApiKey = document.getElementById('ai-online-api-key').value.trim();
@@ -246,7 +284,16 @@ function saveAIConfig() {
             aiPromptTemplate: prompt
         };
 
-        // 在线 AI：任何修改都需要测试握手
+        // 立即关闭窗口
+        closeAISettingsModal();
+
+        // 保存到 Local Storage
+        saveAIConfigToStorage(aiConfig);
+
+        // 显示"正在检测"提示
+        showToast('正在检测 AI 连接...', 'info', false);
+
+        // 在线 AI：测试握手
         testOnlineAIConfig(onlineApiKey, onlineModel).then(() => {
             // 测试成功，记录配置
             lastTestedConfig = {
@@ -255,10 +302,12 @@ function saveAIConfig() {
                 onlineApiKey: onlineApiKey,
                 onlineModel: onlineModel
             };
-            closeAISettingsModal();
+            // 更新提示为成功
+            updateToast('配置已保存', 'success');
         }).catch((error) => {
             console.error('配置验证失败:', error);
-            closeAISettingsModal();
+            // 更新提示为失败
+            updateToast('连接失败，请检查配置', 'error');
         });
     }
 }
@@ -291,7 +340,40 @@ function openAISettingsModal() {
     // 在线 AI 配置
     document.getElementById('ai-online-provider').value = aiConfig.onlineProvider;
     document.getElementById('ai-online-api-key').value = aiConfig.onlineApiKey;
-    document.getElementById('ai-online-model').value = aiConfig.onlineModel;
+
+    // 模型选择框事件监听
+    const modelSelect = document.getElementById('ai-online-model-select');
+    const modelInput = document.getElementById('ai-online-model');
+    if (modelSelect && modelInput) {
+        // 设置输入框的值（使用小写）
+        modelInput.value = aiConfig.onlineModel || 'glm-4-flash-250414';
+
+        // 设置选择框的值
+        modelSelect.value = aiConfig.onlineModel || 'glm-4-flash-250414';
+
+        // 选择框变化时，更新输入框
+        modelSelect.onchange = function() {
+            if (this.value) {
+                modelInput.value = this.value;
+            }
+        };
+
+        // 输入框变化时，更新选择框
+        modelInput.oninput = function() {
+            // 检查输入的值是否在下拉选项中
+            let found = false;
+            for (let option of modelSelect.options) {
+                if (option.value === this.value) {
+                    modelSelect.value = this.value;
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                modelSelect.value = '';
+            }
+        };
+    }
 
     // 通用配置
     document.getElementById('ai-prompt').value = aiConfig.aiPromptTemplate;

@@ -9,11 +9,15 @@
     <title>AirInputLan</title>
     <link rel="stylesheet" href="/pc/css/style.css">
     <script src="/pc/js/qrcode.min.js"></script>
+    <script src="/pc/js/toast.js"></script>
+    <script src="/pc/js/storage.js"></script>
     <script src="/pc/js/init.js"></script>
     <script src="/pc/js/app.js"></script>
     <script src="/pc/js/ai-config.js"></script>
 </head>
 <body>
+    <!-- Toast 容器 -->
+    <div id="toast-container"></div>
     <!-- 主题切换按钮 -->
     <button class="theme-toggle" onclick="toggleTheme()">🌙 切换主题</button>
 
@@ -69,7 +73,7 @@
                 <div class="ai-config-item">
                     <label style="display: inline-block; margin-right: 20px;">
                         <input type="radio" name="ai-provider" id="ai-provider-online" value="online" onchange="toggleAIProviderConfig()">
-                        在线AI（智谱AI）
+                        在线AI（清华智谱）
                     </label>
                     <label style="display: inline-block;">
                         <input type="radio" name="ai-provider" id="ai-provider-local" value="local" onchange="toggleAIProviderConfig()">
@@ -94,14 +98,21 @@
                     <div class="ai-config-item" style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
                         <label for="ai-online-provider" style="white-space: nowrap;">AI提供商：</label>
                         <select id="ai-online-provider" style="flex: 0 0 120px; min-width: 120px;">
-                            <option value="zhipu">智谱AI</option>
+                            <option value="zhipu">清华智谱</option>
                         </select>
                         <label for="ai-online-api-key" style="white-space: nowrap;">API Key：</label>
-                        <input type="password" id="ai-online-api-key" placeholder="请输入智谱AI API Key" style="flex: 1; min-width: 200px;">
+                        <input type="password" id="ai-online-api-key" placeholder="请输入清华智谱 API Key" style="flex: 1; min-width: 200px;">
                     </div>
                     <div class="ai-config-item">
                         <label for="ai-online-model">模型名称：</label>
-                        <input type="text" id="ai-online-model" value="glm-4.7-flash" readonly>
+                        <div style="display: flex; gap: 10px;">
+                            <select id="ai-online-model-select" style="flex: 0 0 200px;">
+                                <option value="">选择模型...</option>
+                                <option value="glm-4-flash-250414" selected>GLM-4-Flash-250414</option>
+                                <option value="glm-4.7-flash">GLM-4.7-Flash</option>
+                            </select>
+                            <input type="text" id="ai-online-model" placeholder="或手动输入" value="glm-4-flash-250414" style="flex: 1;">
+                        </div>
                     </div>
                 </div>
 
