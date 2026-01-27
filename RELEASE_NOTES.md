@@ -1,56 +1,44 @@
-# AirInputLan v1.2.0
+# AirInputLan v1.2.5
 
 ## 🎉 新版本发布 / New Release
 
-这是 AirInputLan v1.2.0 版本，添加本地 AI 修正功能。
+这是 AirInputLan v1.2.5 版本，整合了 v1.2.1 到 v1.2.5 的所有功能更新。
 
-This is AirInputLan v1.2.0 release, adding local AI correction feature.
-
-## ⚠️ 注意事项 / Important Notes
-
-## MacOS 和 Linux用户请在终端下运行，不要双击运行
-
-## MacOS and Linux Users please run in terminal, DO NOT double-click to run
+This is AirInputLan v1.2.5 release, integrating all feature updates from v1.2.1 to v1.2.5.
 
 ## ✨ 新功能 / New Features
 
-### v1.2.0 (2026-01-26)
+### AI 修正功能
+- ✅ 在线 AI 修正功能
+  - 支持清华智谱和阿里心流两个在线 AI 提供商
+  - 每个提供商有独立的 API Key 和模型配置
 
-**新增功能 / New Features**:
-- ✅ 本地AI修正功能（需要Ollama支持）
-  - 右上角添加"🤖 AI修正"按钮，点击打开配置界面
-  - 每个历史卡片左侧显示AI修正按钮（启用时显示）
-  - 点击按钮即可修正该卡片内容，修正后自动复制到剪贴板
-  - 支持配置导出/导入（下载JSON文件）
-  - 全内存运行，刷新页面后需要重新导入配置
+- ✅ 自动 AI 修正功能
+  - 支持手动和自动两种 AI 修正模式
+  - 手动模式：点击卡片左侧 AI 按钮修正
+  - 自动模式：新卡片生成时自动触发 AI 修正
 
-**注意事项 / Important Notes**:
-- ⚠️ 此功能依赖Ollama服务，请确保Ollama已启动并运行在http://localhost:11434
-- ⚠️ 配置仅在当前页面有效，刷新网页后配置将丢失，请务必点击"导出配置"保存配置文件
+### 配置管理
+- ✅ 配置持久化
+  - 所有配置自动保存，刷新页面后自动恢复
 
-### v1.1.3 (2026-01-25)
+- ✅ 提示词模板预设功能
+  - 支持快速切换不同场景的提示词
+  - 支持自定义提示词
 
-**修复问题 / Bug Fixes**:
-- 🐛 修复 Linux 上程序退出时浏览器被关闭的问题
+- ✅ 独立的模板编辑器工具
+  - 支持离线使用
+  - 支持导入、导出 JSON 文件
 
-### v1.1.2 (2026-01-25)
+- ✅ 恢复默认配置功能
+  - 添加"恢复默认配置"按钮
 
-**修复问题 / Bug Fixes**:
-- 🐛 修复卡片开头标点过滤问题
-- 🐛 修复 HTTP 服务 Listener 资源泄漏
-- 🐛 修复文件锁释放失败问题
-- 🐛 修复前端定时器泄漏风险
-- 🐛 修复手机端连接检查逻辑，支持同设备刷新重连
-- 🐛 修复 PC 端网页 XSS 安全漏洞
-- 🐛 修复全局变量 mobileSegmentMode 并发安全问题
-- 🐛 修复 SSE 客户端连接管理缺陷
+### 用户体验改进
+- ✅ Toast 提示系统
+  - 使用 Toast 提示替代 Alert 弹窗
 
-**优化 / Optimizations**:
-- ✨ 定义常量替代魔法数字
-- ✨ 添加前端全局错误处理
-- ✨ 添加前端加载状态显示
-
----
+- ✅ 支持多台电脑同时查看
+  - 多台电脑可同时连接并查看手机输入内容
 
 ## 📚 历史版本 / Historical Versions
 
