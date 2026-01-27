@@ -1,4 +1,4 @@
-# AirInputLan - 手机输入，电脑实时同步
+# AirInputLan: 手机输入 → 电脑同步 → AI 修正
 
 [English Documentation](README_EN.md)
 

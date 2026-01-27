@@ -1,4 +1,4 @@
-# AirInputLan - Mobile Input, PC Real-time Sync
+# AirInputLan: Mobile Input → PC Sync → AI Correction
 
 [中文文档](README.md)
 
