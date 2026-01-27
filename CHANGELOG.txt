@@ -6,126 +6,62 @@ AirInputLan 更新日志 / Changelog
 This document records the update history of all AirInputLan versions.
 
 
+v1.2.4 (2026-01-27)
+-------------------
+
+新增功能 / New Features:
+  * Local Storage 配置持久化功能
+    - 所有配置（AI 配置、主题设置）自动保存到浏览器 Local Storage
+    - 刷新页面后配置自动恢复
+  * Local Storage configuration persistence
+    - All configurations automatically saved to browser Local Storage
+    - Configuration automatically restored after page refresh
+
+  * Toast 提示系统
+    - 使用 Toast 提示替代所有 Alert 弹窗
+  * Toast notification system
+    - Replace all Alert popups with Toast notifications
+
+代码优化 / Code Optimization:
+  * 优化保存配置流程
+    - 点击保存后立即关闭窗口，后台异步测试 AI 连接
+    - 刷新页面后自动预热在线 AI，避免首次使用卡顿
+  * Optimize configuration save process
+    - Close window immediately after clicking save, background async AI connection test
+    - Auto-warmup online AI after page refresh, avoid stuttering on first use
+
+修复问题 / Bug Fixes:
+  * 修复导入导出配置功能
+    - 修复字段验证问题
+    - 支持部分导入配置
+  * Fixed configuration import/export
+    - Fix field validation issue
+    - Support partial configuration import
+
+
 v1.2.3 (2026-01-26)
 -------------------
 
 新增功能 / New Features:
   * 提示词模板预设功能
     - 添加提示词模板下拉选择框，支持快速切换不同场景的提示词
-    - 提示词模板存储在独立的 JSON 文件中（web/pc/js/prompt-templates.json）
-    - 支持自定义提示词，用户可以基于预设模板进行微调
-    - 预设模板包括：语音输入修正、DOTA2 游戏翻译
-    - 提示词输入框始终可见，方便用户随时编辑
+    - 支持自定义提示词
   * Prompt template presets feature
     - Add prompt template dropdown for quick switching between different scenarios
-    - Prompt templates stored in standalone JSON file (web/pc/js/prompt-templates.json)
-    - Support custom prompts, users can fine-tune based on preset templates
-    - Preset templates include: Voice Input Correction, DOTA2 Game Translation
-    - Prompt input box always visible for easy editing
+    - Support custom prompts
 
   * 独立的模板编辑器工具
-    - 创建 template-editor.html 和 template-editor.js
-    - 支持离线使用，双击 HTML 文件即可使用
+    - 支持离线使用
     - 支持导入、导出 JSON 文件
-    - 支持添加、编辑、删除、复制模板
-    - 移除所有 Alert 弹窗，改为静默控制台日志
   * Standalone template editor tool
-    - Create template-editor.html and template-editor.js
-    - Support offline usage, double-click HTML file to use
+    - Support offline usage
     - Support import and export JSON files
-    - Support add, edit, delete, copy templates
-    - Remove all Alert popups, change to silent console log
 
 代码优化 / Code Optimization:
   * 优化在线AI连接测试逻辑
-    - 修改为：只要选择在线AI，任何修改都需要跟服务器握手
-    - 本地AI不需要握手测试
-    - 减少不必要的 API 调用，避免触发 429 限流错误
+    - 只要选择在线AI，任何修改都需要跟服务器握手
   * Optimize online AI connection test logic
-    - Change to: Any modification when online AI is selected requires handshake with server
-    - Local AI does not need handshake test
-    - Reduce unnecessary API calls, avoid triggering 429 rate limit errors
-
-界面优化 / UI Improvements:
-  * 调整 AI 配置界面布局
-    - 将"在线API（智谱AI）"移动到"本地AI（Ollama）"之前
-    - 将"在线提供商"改为"AI提供商"
-    - 将 AI 提供商下拉框和 API Key 输入框放在同一行
-    - 移除下拉选项中的"(GLM 4.7 Flash)"文字
-  * Adjust AI configuration interface layout
-    - Move "Online API (ZhipuAI)" before "Local AI (Ollama)"
-    - Change "Online Provider" to "AI Provider"
-    - Place AI provider dropdown and API key input box on the same line
-    - Remove "(GLM 4.7 Flash)" text from dropdown options
-
-  * 移除所有 Alert 弹窗
-    - 移除所有 alert() 和 confirm() 调用
-    - 改为静默控制台日志输出
-    - 提升用户体验，避免频繁确认操作
-  * Remove all Alert popups
-    - Remove all alert() and confirm() calls
-    - Change to silent console log output
-    - Improve user experience, avoid frequent confirmation operations
-
-
-v1.2.2 (2026-01-26)
--------------------
-
-新增功能 / New Features:
-  * 提示词模板预设功能
-    - 添加提示词模板下拉选择框，支持快速切换不同场景的提示词
-    - 提示词模板存储在独立的 JSON 文件中（web/pc/js/prompt-templates.json）
-    - 支持自定义提示词，用户可以基于预设模板进行微调
-    - 预设模板包括：语音输入修正、DOTA2 游戏翻译
-    - 提示词输入框始终可见，方便用户随时编辑
-  * Prompt template presets feature
-    - Add prompt template dropdown for quick switching between different scenarios
-    - Prompt templates stored in standalone JSON file (web/pc/js/prompt-templates.json)
-    - Support custom prompts, users can fine-tune based on preset templates
-    - Preset templates include: Voice Input Correction, DOTA2 Game Translation
-    - Prompt input box always visible for easy editing
-
-  * DOTA2 游戏翻译模板
-    - 专门为 DOTA2 游戏场景设计的翻译模板
-    - 支持英雄、技能、装备英文名称翻译
-    - 熟悉外服玩家口语化表达和战术缩写
-    - 适配游戏内快速打字沟通需求
-  * DOTA2 game translation template
-    - Translation template specifically designed for DOTA2 game scenarios
-    - Supports translation of hero, skill, and item English names
-    - Familiar with overseas player colloquial expressions and tactical abbreviations
-    - Optimized for quick in-game typing communication
-
-代码优化 / Code Optimization:
-  * 优化连接测试逻辑
-    - 添加配置变更检测，避免重复测试
-    - 检查四个关键字段：AI提供商、在线提供商、API Key、模型名称
-    - 减少不必要的 API 调用，避免触发 429 限流错误
-  * Optimize connection test logic
-    - Add configuration change detection to avoid duplicate tests
-    - Check four key fields: AI provider, online provider, API key, model name
-    - Reduce unnecessary API calls, avoid triggering 429 rate limit errors
-
-界面优化 / UI Improvements:
-  * 调整 AI 配置界面布局
-    - 将"在线API（智谱AI）"移动到"本地AI（Ollama）"之前
-    - 将"在线提供商"改为"AI提供商"
-    - 将 AI 提供商下拉框和 API Key 输入框放在同一行
-    - 移除下拉选项中的"(GLM 4.7 Flash)"文字
-  * Adjust AI configuration interface layout
-    - Move "Online API (ZhipuAI)" before "Local AI (Ollama)"
-    - Change "Online Provider" to "AI Provider"
-    - Place AI provider dropdown and API key input box on the same line
-    - Remove "(GLM 4.7 Flash)" text from dropdown options
-
-  * 移除所有 Alert 弹窗
-    - 移除所有 alert() 和 confirm() 调用
-    - 改为静默控制台日志输出
-    - 提升用户体验，避免频繁确认操作
-  * Remove all Alert popups
-    - Remove all alert() and confirm() calls
-    - Change to silent console log output
-    - Improve user experience, avoid frequent confirmation operations
+    - Any modification when online AI is selected requires handshake with server
 
 
 v1.2.2 (2026-01-26)
@@ -134,16 +70,19 @@ v1.2.2 (2026-01-26)
 新增功能 / New Features:
   * 添加自动 AI 修正功能
     - 支持手动和自动两种 AI 修正模式
-    - 手动模式：点击卡片左侧 AI 按钮修正
-    - 自动模式：卡片生成后自动修正，显示"正在修正..."提示
-    - 修正完成后自动更新卡片内容
-    - 简化界面，移除"启用AI修正"复选框
   * Add automatic AI correction feature
     - Support manual and automatic AI correction modes
-    - Manual mode: Click AI button on left side of card to correct
-    - Automatic mode: Automatically correct after card generation, show "Correcting..." hint
-    - Automatically update card content after correction
-    - Simplify interface, remove "Enable AI Correction" checkbox
+
+  * 提示词模板预设功能
+    - 添加提示词模板下拉选择框
+  * Prompt template presets feature
+    - Add prompt template dropdown
+
+代码优化 / Code Optimization:
+  * 优化连接测试逻辑
+    - 添加配置变更检测，避免重复测试
+  * Optimize connection test logic
+    - Add configuration change detection to avoid duplicate tests
 
 
 v1.2.1 (2026-01-26)
