@@ -16,7 +16,7 @@ PC voice input lags behind mobile. AirInputLan syncs mobile input to PC in real-
   - **Local AI**: Requires Ollama support
   - **Online AI**: Supports Zhipu AI and Alibaba iFlow
 - ✅ **Dual-mode Segmentation** - Supports single input mode and continuous input mode
-- ✅ **Mobile Theme Toggle** - Supports light and dark themes
+- ✅ **Theme Toggle** - Supports light and dark themes
 - ✅ **Easy Operations** - Click to copy, double-click to edit
 
 ## 🚀 Usage
