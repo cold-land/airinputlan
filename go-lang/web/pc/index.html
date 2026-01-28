@@ -92,8 +92,9 @@
                         <select id="ai-zhipu-model-select" onchange="handleModelSelectChange('zhipu')">
                             <option value="glm-4-flash-250414">glm-4-flash-250414</option>
                             <option value="glm-4.7-flash">glm-4.7-flash</option>
+                            <option value="custom">自定义</option>
                         </select>
-                        <input type="text" id="ai-zhipu-model" placeholder="自定义模型名称">
+                        <input type="text" id="ai-zhipu-model" placeholder="自定义模型名称" oninput="handleModelInputChange('zhipu')">
                     </div>
                 </div>
 
@@ -110,20 +111,26 @@
                             <option value="qwen3-max">qwen3-max</option>
                             <option value="kimi-k2">kimi-k2</option>
                             <option value="deepseek-v3">deepseek-v3</option>
+                            <option value="custom">自定义</option>
                         </select>
-                        <input type="text" id="ai-iflow-model" placeholder="自定义模型名称">
+                        <input type="text" id="ai-iflow-model" placeholder="自定义模型名称" oninput="handleModelInputChange('iflow')">
                     </div>
                 </div>
 
                 <!-- Ollama 配置 -->
                 <div id="ai-ollama-config" class="ai-config-section hidden">
                     <div class="ai-config-item">
-                        <label for="ai-ollama-api-url">API 地址：</label>
+                        <label for="ai-ollama-api-url">API URL：</label>
                         <input type="text" id="ai-ollama-api-url" placeholder="http://localhost:11434/api/generate">
                     </div>
                     <div class="ai-config-item">
                         <label for="ai-ollama-model">模型：</label>
-                        <input type="text" id="ai-ollama-model" placeholder="qwen3:0.6b">
+                        <select id="ai-ollama-model-select" onchange="handleModelSelectChange('ollama')">
+                            <option value="qwen3:0.6b">qwen3:0.6b</option>
+                            <option value="llama3.2:3b">llama3.2:3b</option>
+                            <option value="custom">自定义</option>
+                        </select>
+                        <input type="text" id="ai-ollama-model" placeholder="自定义模型名称" oninput="handleModelInputChange('ollama')">
                     </div>
                 </div>
 

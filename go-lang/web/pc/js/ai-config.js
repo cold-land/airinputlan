@@ -107,7 +107,21 @@ function handleModelSelectChange(provider) {
     const select = document.getElementById(`ai-${provider}-model-select`);
     const input = document.getElementById(`ai-${provider}-model`);
     if (select && input) {
-        input.value = select.value;
+        if (select.value !== 'custom') {
+            input.value = select.value;
+        }
+    }
+}
+
+// 处理模型输入变化
+function handleModelInputChange(provider) {
+    const select = document.getElementById(`ai-${provider}-model-select`);
+    const input = document.getElementById(`ai-${provider}-model`);
+    if (select && input) {
+        // 如果输入框的值和下拉框当前选中的值不同，则切换到自定义
+        if (input.value !== select.value && select.value !== 'custom') {
+            select.value = 'custom';
+        }
     }
 }
 
@@ -443,17 +457,46 @@ function handleProviderChange() {
         document.getElementById('ai-zhipu-api-key').value = aiConfig.providers.zhipu.apiKey || '';
         const zhipuModel = aiConfig.providers.zhipu.model || 'glm-4-flash-250414';
         document.getElementById('ai-zhipu-model').value = zhipuModel;
-        document.getElementById('ai-zhipu-model-select').value = zhipuModel;
+        // 检查模型是否在预设列表中，如果不是则显示自定义
+        const zhipuSelect = document.getElementById('ai-zhipu-model-select');
+        let isPreset = false;
+        for (let i = 0; i < zhipuSelect.options.length; i++) {
+            if (zhipuSelect.options[i].value === zhipuModel && zhipuSelect.options[i].value !== 'custom') {
+                isPreset = true;
+                break;
+            }
+        }
+        zhipuSelect.value = isPreset ? zhipuModel : 'custom';
     } else if (newProvider === 'iflow') {
         document.getElementById('ai-iflow-config').classList.remove('hidden');
         document.getElementById('ai-iflow-api-key').value = aiConfig.providers.iflow.apiKey || '';
         const iflowModel = aiConfig.providers.iflow.model || 'qwen3-max';
         document.getElementById('ai-iflow-model').value = iflowModel;
-        document.getElementById('ai-iflow-model-select').value = iflowModel;
+        // 检查模型是否在预设列表中，如果不是则显示自定义
+        const iflowSelect = document.getElementById('ai-iflow-model-select');
+        let isPreset = false;
+        for (let i = 0; i < iflowSelect.options.length; i++) {
+            if (iflowSelect.options[i].value === iflowModel && iflowSelect.options[i].value !== 'custom') {
+                isPreset = true;
+                break;
+            }
+        }
+        iflowSelect.value = isPreset ? iflowModel : 'custom';
     } else if (newProvider === 'ollama') {
         document.getElementById('ai-ollama-config').classList.remove('hidden');
         document.getElementById('ai-ollama-api-url').value = aiConfig.providers.ollama.apiUrl || 'http://localhost:11434/api/generate';
-        document.getElementById('ai-ollama-model').value = aiConfig.providers.ollama.model || 'qwen3:0.6b';
+        const ollamaModel = aiConfig.providers.ollama.model || 'qwen3:0.6b';
+        document.getElementById('ai-ollama-model').value = ollamaModel;
+        // 检查模型是否在预设列表中，如果不是则显示自定义
+        const ollamaSelect = document.getElementById('ai-ollama-model-select');
+        let isPreset = false;
+        for (let i = 0; i < ollamaSelect.options.length; i++) {
+            if (ollamaSelect.options[i].value === ollamaModel && ollamaSelect.options[i].value !== 'custom') {
+                isPreset = true;
+                break;
+            }
+        }
+        ollamaSelect.value = isPreset ? ollamaModel : 'custom';
     }
 }
 
