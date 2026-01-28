@@ -6,6 +6,14 @@ AirInputLan 更新日志 / Changelog
 This document records the update history of all AirInputLan versions.
 
 
+v1.2.7 (2026-01-28)
+-------------------
+
+用户体验改进 / User Experience Improvements:
+  * PC 端断开 10 秒后程序自动退出，防止实例锁导致程序在后台运行，提升用户体验
+  * Program auto-exits 10 seconds after PC disconnects, preventing program from running in background due to instance lock, improving user experience
+
+
 v1.2.6 (2026-01-28)
 -------------------
 
