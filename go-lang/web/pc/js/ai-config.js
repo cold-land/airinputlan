@@ -102,6 +102,15 @@ function exportAIConfig() {
     showToast('配置已导出', 'success');
 }
 
+// 处理模型选择变化
+function handleModelSelectChange(provider) {
+    const select = document.getElementById(`ai-${provider}-model-select`);
+    const input = document.getElementById(`ai-${provider}-model`);
+    if (select && input) {
+        input.value = select.value;
+    }
+}
+
 // 导入配置
 function importAIConfig() {
     const input = document.createElement('input');
@@ -432,11 +441,15 @@ function handleProviderChange() {
     if (newProvider === 'zhipu') {
         document.getElementById('ai-zhipu-config').classList.remove('hidden');
         document.getElementById('ai-zhipu-api-key').value = aiConfig.providers.zhipu.apiKey || '';
-        document.getElementById('ai-zhipu-model').value = aiConfig.providers.zhipu.model || 'glm-4-flash-250414';
+        const zhipuModel = aiConfig.providers.zhipu.model || 'glm-4-flash-250414';
+        document.getElementById('ai-zhipu-model').value = zhipuModel;
+        document.getElementById('ai-zhipu-model-select').value = zhipuModel;
     } else if (newProvider === 'iflow') {
         document.getElementById('ai-iflow-config').classList.remove('hidden');
         document.getElementById('ai-iflow-api-key').value = aiConfig.providers.iflow.apiKey || '';
-        document.getElementById('ai-iflow-model').value = aiConfig.providers.iflow.model || 'qwen3-max';
+        const iflowModel = aiConfig.providers.iflow.model || 'qwen3-max';
+        document.getElementById('ai-iflow-model').value = iflowModel;
+        document.getElementById('ai-iflow-model-select').value = iflowModel;
     } else if (newProvider === 'ollama') {
         document.getElementById('ai-ollama-config').classList.remove('hidden');
         document.getElementById('ai-ollama-api-url').value = aiConfig.providers.ollama.apiUrl || 'http://localhost:11434/api/generate';

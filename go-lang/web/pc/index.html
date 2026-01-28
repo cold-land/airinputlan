@@ -73,7 +73,7 @@
 
                 <!-- AI 提供商选择（单一选择） -->
                 <div class="ai-config-item">
-                    <label for="ai-provider">AI 提供商：</label>
+                    <label for="ai-provider">服务商：</label>
                     <select id="ai-provider" onchange="handleProviderChange()">
                         <option value="zhipu">清华智谱</option>
                         <option value="iflow">阿里心流</option>
@@ -84,32 +84,34 @@
                 <!-- 智谱配置 -->
                 <div id="ai-zhipu-config" class="ai-config-section hidden">
                     <div class="ai-config-item">
-                        <label for="ai-zhipu-api-key">智谱 API Key：</label>
+                        <label for="ai-zhipu-api-key">API Key：</label>
                         <input type="password" id="ai-zhipu-api-key" placeholder="请输入智谱 API Key">
                     </div>
                     <div class="ai-config-item">
-                        <label for="ai-zhipu-model">模型名称：</label>
-                        <select id="ai-zhipu-model">
+                        <label for="ai-zhipu-model">模型：</label>
+                        <select id="ai-zhipu-model-select" onchange="handleModelSelectChange('zhipu')">
                             <option value="glm-4-flash-250414">glm-4-flash-250414</option>
                             <option value="glm-4.7-flash">glm-4.7-flash</option>
                         </select>
+                        <input type="text" id="ai-zhipu-model" placeholder="自定义模型名称">
                     </div>
                 </div>
 
                 <!-- 心流配置 -->
                 <div id="ai-iflow-config" class="ai-config-section hidden">
                     <div class="ai-config-item">
-                        <label for="ai-iflow-api-key">心流 API Key：</label>
+                        <label for="ai-iflow-api-key">API Key：</label>
                         <input type="password" id="ai-iflow-api-key" placeholder="请输入心流 API Key">
                     </div>
                     <div class="ai-config-item">
-                        <label for="ai-iflow-model">模型名称：</label>
-                        <select id="ai-iflow-model">
+                        <label for="ai-iflow-model">模型：</label>
+                        <select id="ai-iflow-model-select" onchange="handleModelSelectChange('iflow')">
                             <option value="iflow-rome-30ba3b">iflow-rome-30ba3b</option>
                             <option value="qwen3-max">qwen3-max</option>
                             <option value="kimi-k2">kimi-k2</option>
                             <option value="deepseek-v3">deepseek-v3</option>
                         </select>
+                        <input type="text" id="ai-iflow-model" placeholder="自定义模型名称">
                     </div>
                 </div>
 
@@ -120,14 +122,14 @@
                         <input type="text" id="ai-ollama-api-url" placeholder="http://localhost:11434/api/generate">
                     </div>
                     <div class="ai-config-item">
-                        <label for="ai-ollama-model">模型名称：</label>
+                        <label for="ai-ollama-model">模型：</label>
                         <input type="text" id="ai-ollama-model" placeholder="qwen3:0.6b">
                     </div>
                 </div>
 
                 <!-- 通用配置 -->
                 <div class="ai-config-item">
-                    <label for="ai-prompt-template">提示词模板：</label>
+                    <label for="ai-prompt-template">提示词：</label>
                     <select id="ai-prompt-template"></select>
                 </div>
                 <div class="ai-config-item">

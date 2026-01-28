@@ -504,7 +504,7 @@
         .ai-config-item label {
             display: inline-block;
             margin-right: 15px;
-            width: 120px;
+            width: 80px;
             text-align: right;
             white-space: nowrap;
             font-weight: 500;
@@ -528,6 +528,12 @@
             background: white;
             color: #333;
             transition: background 0.3s, border-color 0.3s, color 0.3s;
+        }
+
+        .ai-config-item input[type="text"] + select,
+        .ai-config-item select + input[type="text"] {
+            margin-left: 10px;
+            flex: 0 0 200px;
         }
 
         .ai-config-item textarea {
