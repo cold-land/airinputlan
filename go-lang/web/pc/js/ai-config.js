@@ -21,7 +21,7 @@ const DEFAULT_AI_CONFIG = {
     // 通用配置
     aiCorrectionMode: 'manual', // 'manual' 或 'auto'
     aiPromptTemplateId: 'default',  // 模板 ID
-    aiPromptTemplate: '你是专业的语音识别文本修正助手，核心逻辑是先理解整句话的语义和使用场景，再针对性修正语音转文字的错误，仅输出修正后的纯文本，不要任何额外解释、标点或备注。\n严格遵循以下通用修正规则：\n1. 语义优先：基于整句话的语境和语义，判断并修正语音误听的同音字、错字、漏字、多字，尤其是技术场景的词汇（如英文/数字组合、专业术语）；\n2. 保留核心：完全保留原句的数字、英文词汇、专有名词、核心语义和基本句式，仅修正错误，不增删、不改写原意；\n3. 清理口语：移除无意义的语气词（嗯、啊、呢、吧、哦、呃、然后）、重复词汇（如我们我们、的的）、多余的无意义单字；\n4. 规范格式：修正英文/技术词汇间的标点错误（如逗号换空格）、重复标点，保持原句整体标点和句式结构基本不变；\n5. 拼写修正：基于语义修正技术词汇的字母重复、漏写、错写问题，还原正确的英文专业词汇。'
+    aiPromptTemplate: ''  // 从 prompt-templates.json 加载
 };
 
 let aiConfig = { ...DEFAULT_AI_CONFIG };
@@ -29,7 +29,7 @@ let lastTestedConfig = null; // 记录上次测试的配置
 let promptTemplates = []; // 提示词模板列表
 
 // 从 Local Storage 加载 AI 配置
-function loadAISettings() {
+async function loadAISettings() {
     const savedConfig = loadAIConfigFromStorage();
     if (savedConfig) {
         // 检测是否为旧版本配置（有 aiProvider 或 onlineProvider 字段）
@@ -50,6 +50,21 @@ function loadAISettings() {
         }
     } else {
         aiConfig = { ...DEFAULT_AI_CONFIG };
+    }
+
+    // 如果 aiPromptTemplate 为空，从 prompt-templates.json 加载默认模板
+    if (!aiConfig.aiPromptTemplate) {
+        try {
+            const response = await fetch('/pc/js/prompt-templates.json');
+            const data = await response.json();
+            const defaultTemplate = data.templates.find(t => t.id === 'default');
+            if (defaultTemplate) {
+                aiConfig.aiPromptTemplate = defaultTemplate.prompt;
+                console.log('已从 prompt-templates.json 加载默认提示词');
+            }
+        } catch (error) {
+            console.error('加载默认提示词失败:', error);
+        }
     }
 }
 
@@ -119,12 +134,19 @@ async function loadPromptTemplates() {
         const response = await fetch('/pc/js/prompt-templates.json');
         const data = await response.json();
         promptTemplates = data.templates || [];
-        
+
+        // 加载自定义模板
+        const customTemplates = loadCustomTemplates();
+        if (customTemplates.length > 0) {
+            promptTemplates = promptTemplates.concat(customTemplates);
+            console.log('已加载', customTemplates.length, '个自定义模板');
+        }
+
         // 填充下拉选择框
         const select = document.getElementById('ai-prompt-template');
         if (select) {
             select.innerHTML = '';
-            
+
             // 添加预设模板
             promptTemplates.forEach(template => {
                 const option = document.createElement('option');
@@ -132,13 +154,13 @@ async function loadPromptTemplates() {
                 option.textContent = template.name;
                 select.appendChild(option);
             });
-            
+
             // 添加"自定义"选项
             const customOption = document.createElement('option');
             customOption.value = 'custom';
-            customOption.textContent = '自定义';
+            customOption.textContent = '新增自定义模板';
             select.appendChild(customOption);
-            
+
             // 默认选择
             select.value = aiConfig.aiPromptTemplateId || 'default';
             handlePromptTemplateChange();
@@ -175,6 +197,7 @@ function handlePromptTemplateChange() {
 function exportAIConfig() {
     const config = {
         aiConfig: aiConfig,
+        customTemplates: loadCustomTemplates(),
         theme: document.body.classList.contains('dark-theme') ? 'dark' : 'light'
     };
     const configJson = JSON.stringify(config, null, 2);
@@ -187,7 +210,7 @@ function exportAIConfig() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    
+
     showToast('配置已导出', 'success');
 }
 
@@ -294,6 +317,14 @@ function importAIConfig() {
                     filteredConfig.provider = config.provider;
                 }
 
+                // 恢复自定义模板（如果存在）
+                if (data.customTemplates && Array.isArray(data.customTemplates)) {
+                    data.customTemplates.forEach(template => {
+                        saveCustomTemplate(template);
+                    });
+                    console.log('已恢复', data.customTemplates.length, '个自定义模板');
+                }
+
                 // 应用主题设置（如果存在）
                 if (data.theme) {
                     if (data.theme === 'dark') {
@@ -344,16 +375,40 @@ function saveAIConfig() {
     let templateId = promptTemplateId;
 
     if (promptTemplateId !== 'custom') {
-        // 使用预设模板
         const template = promptTemplates.find(t => t.id === promptTemplateId);
         if (template) {
-            prompt = template.prompt;
+            // 检测用户是否修改了预设模板
+            if (customPrompt !== template.prompt && customPrompt.trim() !== '') {
+                // 自动创建自定义模板
+                const customTemplate = {
+                    id: 'custom_' + Date.now(),
+                    name: template.name + '（自定义）',
+                    prompt: customPrompt
+                };
+                saveCustomTemplate(customTemplate);
+                templateId = customTemplate.id;
+                prompt = customPrompt;
+                showToast('已保存为自定义模板: ' + customTemplate.name, 'success');
+            } else {
+                // 未修改，使用原模板
+                prompt = template.prompt;
+            }
         }
     } else {
-        // 使用自定义提示词
+        // "新增自定义模板"模式
         if (!prompt) {
             return;
         }
+
+        // 保存自定义模板到 Local Storage
+        const customTemplate = {
+            id: 'custom_' + Date.now(),
+            name: '自定义' + (loadCustomTemplates().length + 1),
+            prompt: prompt
+        };
+        saveCustomTemplate(customTemplate);
+        templateId = customTemplate.id;
+        console.log('已保存自定义模板:', customTemplate.name);
     }
 
     // 根据提供商保存不同的配置
@@ -402,7 +457,7 @@ function saveAIConfig() {
 
     // 立即测试 AI 连接
     showToast('正在测试 AI 连接...', 'info', false);
-    
+
     // 直接调用测试函数，传入 provider
     testAIConnection(provider)
         .then(() => {

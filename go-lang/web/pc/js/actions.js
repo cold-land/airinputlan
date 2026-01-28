@@ -75,11 +75,35 @@ function copyToBrowser(text) {
 function copyToServer(text) {
     // 占位实现：输出控制台消息
     console.log('[服务端复制]', text);
-    
+
     // 未来实现：
     // 1. 通过 WebSocket 通知服务端
     // 2. 或通过 HTTP POST 调用 /api/copy 端点
     // 3. 服务端使用 github.com/atotto/clipboard 库执行系统剪贴板操作
+}
+
+/**
+ * 保存卡片编辑
+ * 更新卡片内容和原始文本属性
+ * @param {HTMLElement} card - 卡片元素
+ * @param {string} newText - 新文本内容
+ * @param {string} originalText - 原始文本内容
+ */
+function saveCardEdit(card, newText, originalText) {
+    const cardContent = card.querySelector('.card-content');
+
+    if (newText && newText !== originalText) {
+        // 更新卡片内容（带高亮）
+        cardContent.innerHTML = highlightDuplicates(newText);
+        // 更新 data-original-text 属性
+        card.dataset.originalText = newText;
+    } else {
+        // 恢复原始内容（带高亮）
+        cardContent.innerHTML = highlightDuplicates(originalText);
+    }
+
+    // 移除编辑状态
+    card.classList.remove('editing');
 }
 
 /**
@@ -92,9 +116,11 @@ function copyToServer(text) {
  * @returns {Promise<string>} - AI 返回的处理后的文本
  */
 async function callOllamaAPI(prompt, onChunk, onComplete, options = {}, signal) {
+    // Ollama 使用简单格式，需要包含模板和待处理文本
+    const fullPrompt = aiConfig.aiPromptTemplate + '\n待处理文本：' + prompt;
     const requestBody = {
         model: aiConfig.providers.ollama.model,
-        prompt: prompt,
+        prompt: fullPrompt,
         stream: true
     };
 
@@ -365,6 +391,8 @@ async function testAIConnection(provider, silent = false) {
 
     const testPrompt = '测试';
     let receivedData = false;
+    const actionType = silent ? '预热' : '测试';
+    console.log(`[${actionType}开始] ${provider}`);
 
 
 
@@ -522,6 +550,8 @@ async function testAIConnection(provider, silent = false) {
 
 
 
+        console.log(`[${actionType}成功] ${provider}`);
+
         // 触发测试成功事件
 
         EventBus.emit('ai:test:success', provider);
@@ -542,6 +572,8 @@ async function testAIConnection(provider, silent = false) {
 
     } catch (error) {
 
+        console.log(`[${actionType}失败] ${provider}`, error);
+
         // 触发测试失败事件
 
         EventBus.emit('ai:test:failed', provider, error);
@@ -559,6 +591,8 @@ async function testAIConnection(provider, silent = false) {
         throw error;
 
     } finally {
+        console.log(`[${actionType}结束] ${provider}`);
+
         // 恢复原始的提示词模板
         aiConfig.aiPromptTemplate = originalPromptTemplate;
 

@@ -3,6 +3,8 @@ const EventBus = {
     events: {
         'card:created': [],
         'card:added': [],
+        'card:edit:start': [],  // 卡片进入编辑状态
+        'card:edit:end': [],    // 卡片退出编辑状态
         'ai:process:start': [],
         'ai:process:completed': [],
         'ai:test:start': [],

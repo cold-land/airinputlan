@@ -24,94 +24,6 @@ function toggleTheme() {
     saveTheme(isDark ? 'dark' : 'light');
 }
 
-// 初始化
-function init() {
-    console.log('初始化...');
-
-    // 清空所有内容
-    document.getElementById('history-cards').innerHTML = '';
-    document.getElementById('current-input').textContent = '';
-
-    // 检测 Local Storage 是否可用
-    if (!isLocalStorageAvailable()) {
-        showToast('当前处于隐私模式，配置将无法保存', 'warning');
-    }
-
-    // 加载主题
-    loadThemeSettings();
-
-    // 加载 AI 配置
-    loadAISettings();
-
-    // 注册事件监听器
-    registerEventListeners();
-
-    loadServerInfo();
-    setupEventSource();
-
-    // 预热 AI 连接（静默模式）
-    if (aiConfig.provider && aiConfig.providers[aiConfig.provider]?.apiKey) {
-        console.log(`预热 AI 连接: ${aiConfig.provider}`);
-        testAIConnection(aiConfig.provider, true)  // 静默模式
-            .then(() => console.log(`AI 预热成功: ${aiConfig.provider}`))
-            .catch((error) => console.log(`AI 预热失败: ${aiConfig.provider}`, error));
-    }
-}
-
-// 加载主题设置
-function loadThemeSettings() {
-    const savedTheme = loadTheme();
-    if (savedTheme === 'dark') {
-        document.body.classList.add('dark-theme');
-        const button = document.querySelector('.theme-toggle');
-        if (button) {
-            button.textContent = '☀️ 切换主题';
-        }
-    }
-}
-
-// 加载 AI 配置
-function loadAISettings() {
-    // AI 配置的加载在 ai-config.js 中处理
-    // 这里只是确保 storage.js 和 ai-config.js 都已加载
-}
-
-// 注册事件监听器
-function registerEventListeners() {
-    // 监听卡片添加事件 - 自动 AI 修正
-    EventBus.on('card:added', (card, text) => {
-        if (aiConfig.aiCorrectionMode === 'auto') {
-            correctCardWithAI(card, true);
-        }
-    });
-
-    // 监听 AI 处理完成事件 - 执行复制动作
-    EventBus.on('ai:process:completed', (card, text) => {
-        copyToBrowser(text);
-        copyToServer(text);
-    });
-
-    // 监听 AI 测试开始事件
-    EventBus.on('ai:test:start', (provider) => {
-        console.log(`AI 测试开始: ${provider}`);
-    });
-
-    // 监听 AI 测试结束事件
-    EventBus.on('ai:test:end', (provider) => {
-        console.log(`AI 测试结束: ${provider}`);
-    });
-
-    // 监听 AI 测试成功事件
-    EventBus.on('ai:test:success', (provider) => {
-        console.log(`AI 测试成功: ${provider}`);
-    });
-
-    // 监听 AI 测试失败事件
-    EventBus.on('ai:test:failed', (provider, error) => {
-        console.log(`AI 测试失败: ${provider}`, error);
-    });
-}
-
 // 加载服务器信息
 async function loadServerInfo() {
     const ipList = document.getElementById('ip-list');
@@ -138,7 +50,7 @@ async function loadServerInfo() {
 
         displayIPs(ipsData.ips);
         displayPort(portData.port);
-        generateQRCode(ipsData.ips, portData.port);
+        generateQRCodeForIP(ipsData.ips, portData.port);
     } catch (error) {
         ipList.innerHTML = '加载失败';
         portInfo.innerHTML = '加载失败';
@@ -209,19 +121,32 @@ function displayPort(port) {
 }
 
 // 生成二维码
-function generateQRCode(ips, port) {
-    if (ips && ips.length > 0) {
-        // 使用第一个IP（已按优先级排序：以太网 > USB共享网卡 > WiFi）
-        const selectedIP = ips[0];
-        generateQRCodeForIP(selectedIP.ip, port);
-    }
-}
-
-// 根据指定IP生成二维码
-function generateQRCodeForIP(ip, port) {
+// 根据IP或IP列表生成二维码
+// 支持参数：
+// - ipOrIps: 
+//   1. 字符串类型（多网卡选择时）: '192.168.1.1'
+//   2. IP对象数组: [{ip: '192.168.1.1', nicType: 'ethernet'}, ...]
+//   3. 单个IP对象: {ip: '192.168.1.1', nicType: 'ethernet'}
+// - port: 端口号
+function generateQRCodeForIP(ipOrIps, port) {
     const container = document.getElementById('qr-code');
+    
+    // 智能判断参数类型
+    let ip;
+    if (typeof ipOrIps === 'string') {
+        // 字符串类型（多网卡选择时传递）
+        ip = ipOrIps;
+    } else if (Array.isArray(ipOrIps) && ipOrIps.length > 0) {
+        // 数组类型（初始化时传递，已按优先级排序：以太网 > USB共享网卡 > WiFi）
+        ip = ipOrIps[0].ip;
+    } else if (ipOrIps && ipOrIps.ip) {
+        // 对象类型
+        ip = ipOrIps.ip;
+    } else {
+        return;
+    }
+    
     const url = `http://${ip}:${port}`;
-
     console.log('生成二维码，URL:', url);
 
     // 使用 QRCode.js 在本地生成二维码
@@ -494,8 +419,8 @@ async function correctCardWithAI(cardWrapper, isAutoMode = false) {
     cardContent.innerHTML = '<span style="color: #999;">正在修正...</span>';
 
     try {
-        // 构建提示词（自动追加待修正文本）
-        const prompt = aiConfig.aiPromptTemplate + '\n\n待修正文本：' + originalText;
+        // 构建提示词（只包含待处理文本）
+        const prompt = '待处理文本：' + originalText;
 
         let fixedText;
 
@@ -604,6 +529,9 @@ async function correctCardWithAI(cardWrapper, isAutoMode = false) {
 function enterEditMode(card, originalText) {
     card.classList.add('editing');
 
+    // 触发卡片进入编辑状态事件
+    EventBus.emit('card:edit:start', card, originalText);
+
     // 获取卡片内容容器
     const cardContent = card.querySelector('.card-content');
     const aiButton = card.querySelector('.ai-correct-button');
@@ -639,17 +567,17 @@ function enterEditMode(card, originalText) {
 
     const confirmEdit = () => {
         const newText = textarea.value.trim();
+        
+        // 保存卡片编辑
+        saveCardEdit(card, newText, originalText);
+        
+        // 如果有修改，复制到剪贴板
         if (newText && newText !== originalText) {
-            // 更新卡片内容（带高亮）
-            cardContent.innerHTML = highlightDuplicates(newText);
-            // 更新 data-original-text 属性
-            card.dataset.originalText = newText;
             copyToBrowser(newText);
-        } else {
-            // 恢复原始内容（带高亮）
-            cardContent.innerHTML = highlightDuplicates(originalText);
         }
-        card.classList.remove('editing');
+        
+        // 触发卡片退出编辑状态事件
+        EventBus.emit('card:edit:end', card, newText, originalText);
     };
 
     textarea.onblur = confirmEdit;

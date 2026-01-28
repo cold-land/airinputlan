@@ -3,7 +3,8 @@
 // Local Storage 键名
 const STORAGE_KEYS = {
     AI_CONFIG: 'airinputlan_ai_config',
-    THEME: 'airinputlan_theme'
+    THEME: 'airinputlan_theme',
+    CUSTOM_TEMPLATES: 'airinputlan_custom_templates'
 };
 
 // 检测 Local Storage 是否可用
@@ -104,6 +105,7 @@ function clearAllStorage() {
     try {
         localStorage.removeItem(STORAGE_KEYS.AI_CONFIG);
         localStorage.removeItem(STORAGE_KEYS.THEME);
+        localStorage.removeItem(STORAGE_KEYS.CUSTOM_TEMPLATES);
         console.log('所有配置已清除');
         return true;
     } catch (e) {
@@ -112,16 +114,94 @@ function clearAllStorage() {
     }
 }
 
+// 保存自定义模板
+function saveCustomTemplate(template) {
+    if (!isLocalStorageAvailable()) {
+        console.warn('Local Storage 不可用，无法保存自定义模板');
+        return false;
+    }
+
+    const customTemplates = loadCustomTemplates();
+    const index = customTemplates.findIndex(t => t.id === template.id);
+    
+    if (index !== -1) {
+        customTemplates[index] = template;
+    } else {
+        customTemplates.push(template);
+    }
+
+    const success = saveToStorage(STORAGE_KEYS.CUSTOM_TEMPLATES, customTemplates);
+    if (success) {
+        console.log('自定义模板已保存:', template.name);
+    }
+    return success;
+}
+
+// 加载所有自定义模板
+function loadCustomTemplates() {
+    if (!isLocalStorageAvailable()) {
+        console.warn('Local Storage 不可用，无法加载自定义模板');
+        return [];
+    }
+
+    const templates = loadFromStorage(STORAGE_KEYS.CUSTOM_TEMPLATES, []);
+    if (templates.length > 0) {
+        console.log('已加载', templates.length, '个自定义模板');
+    }
+    return templates;
+}
+
+// 删除自定义模板
+function deleteCustomTemplate(templateId) {
+    if (!isLocalStorageAvailable()) {
+        console.warn('Local Storage 不可用，无法删除自定义模板');
+        return false;
+    }
+
+    const customTemplates = loadCustomTemplates();
+    const index = customTemplates.findIndex(t => t.id === templateId);
+    
+    if (index === -1) {
+        console.warn('未找到模板:', templateId);
+        return false;
+    }
+
+    customTemplates.splice(index, 1);
+    const success = saveToStorage(STORAGE_KEYS.CUSTOM_TEMPLATES, customTemplates);
+    if (success) {
+        console.log('自定义模板已删除:', templateId);
+    }
+    return success;
+}
+
+// 清除所有自定义模板
+function clearAllCustomTemplates() {
+    if (!isLocalStorageAvailable()) {
+        console.warn('Local Storage 不可用，无法清除自定义模板');
+        return false;
+    }
+
+    const success = saveToStorage(STORAGE_KEYS.CUSTOM_TEMPLATES, []);
+    if (success) {
+        console.log('所有自定义模板已清除');
+    }
+    return success;
+}
+
 // 导出函数（如果需要模块化）
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
         isLocalStorageAvailable,
         saveToStorage,
         loadFromStorage,
-        saveAIConfig,
-        loadAIConfig,
+        saveAIConfigToStorage,
+        loadAIConfigFromStorage,
         saveTheme,
         loadTheme,
-        clearAllStorage
+        clearAllStorage,
+        saveCustomTemplate,
+        loadCustomTemplates,
+        deleteCustomTemplate,
+        clearAllCustomTemplates
     };
 }

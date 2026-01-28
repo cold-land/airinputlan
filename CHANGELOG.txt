@@ -6,6 +6,41 @@ AirInputLan 更新日志 / Changelog
 This document records the update history of all AirInputLan versions.
 
 
+v1.2.6 (2026-01-28)
+-------------------
+
+架构优化 / Architecture Optimization:
+  * 引入事件驱动架构
+    - 新增 EventBus 系统，实现模块间解耦
+    - 通过事件总线管理卡片添加、AI 修正、测试等事件
+  * Introduce event-driven architecture
+    - Add EventBus system for module decoupling
+    - Manage card addition, AI correction, testing events via event bus
+
+  * AI API 调用函数提取
+    - 将智谱、心流、Ollama 的 API 调用函数独立到 actions.js
+    - 提高代码可维护性和复用性
+  * Extract AI API calling functions
+    - Separate Zhipu, iFlow, and Ollama API calling functions into actions.js
+    - Improve code maintainability and reusability
+
+配置优化 / Configuration Optimization:
+  * Local Storage 保存格式重构
+    - 优化配置存储结构，统一使用 window 对象管理全局状态
+    - 修复变量同步问题，确保所有模块访问的都是同一个变量
+  * Local Storage storage format refactor
+    - Optimize configuration storage structure, use window object for global state management
+    - Fix variable synchronization issues, ensure all modules access the same variables
+
+并发控制 / Concurrency Control:
+  * 防止 API 并发机制
+    - 通过标志位检查、AbortController 和双重检查，确保同一时间只有一个 AI 请求在执行
+    - 避免并发请求导致的问题
+  * Prevent API concurrency mechanism
+    - Ensure only one AI request executes at a time via flag checks, AbortController, and double checks
+    - Avoid issues caused by concurrent requests
+
+
 v1.2.5 (2026-01-27)
 -------------------
 
