@@ -17,6 +17,15 @@ v1.2.6 (2026-01-28)
     - Add EventBus system for module decoupling
     - Manage card addition, AI correction, testing events via event bus
 
+  * 空提示词模式支持 Markdown 渲染
+    - 可直接与 AI 对话，支持 Markdown 格式显示
+    - 支持标题、列表、代码块、粗体、斜体等 Markdown 语法
+    - 自动适配亮色和暗色主题
+  * Empty prompt template supports Markdown rendering
+    - Direct AI conversation with Markdown format display
+    - Support Markdown syntax: headings, lists, code blocks, bold, italic
+    - Auto-adapt to light and dark themes
+
 代码优化 / Code Optimization:
   * 防止 API 并发机制
     - 确保同一时间只有一个 AI 请求在执行
