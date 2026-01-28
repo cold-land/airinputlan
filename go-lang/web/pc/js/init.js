@@ -70,8 +70,8 @@ async function loadAISettings() {
         aiConfig = { ...DEFAULT_AI_CONFIG };
     }
 
-    // 如果 aiPromptTemplate 为空，从 prompt-templates.json 加载默认模板
-    if (!aiConfig.aiPromptTemplate) {
+    // 如果 aiPromptTemplate 为空且模板 ID 不是 empty，从 prompt-templates.json 加载默认模板
+    if (!aiConfig.aiPromptTemplate && aiConfig.aiPromptTemplateId !== 'empty') {
         try {
             const response = await fetch('/pc/js/prompt-templates.json');
             const data = await response.json();

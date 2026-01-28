@@ -641,9 +641,6 @@ function openAISettingsModal() {
         }
     });
 
-    // 通用配置
-    document.getElementById('ai-prompt').value = aiConfig.aiPromptTemplate || '';
-
     // 显示模态框
     modal.classList.remove('hidden');
 

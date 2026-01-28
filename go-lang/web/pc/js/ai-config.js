@@ -67,14 +67,22 @@ function handlePromptTemplateChange() {
     
     const selectedValue = select.value;
     
-    if (selectedValue === 'custom') {
+    if (selectedValue === 'empty') {
+        // 空模板：清空文本框且禁用编辑
+        customTextarea.value = '';
+        customTextarea.disabled = true;
+        aiConfig.aiPromptTemplate = '';
+        aiConfig.aiPromptTemplateId = 'empty';
+    } else if (selectedValue === 'custom') {
         // 自定义模式，保持当前内容
         customTextarea.value = aiConfig.aiPromptTemplate;
+        customTextarea.disabled = false;
     } else {
         // 预设模板模式，填充预设内容
         const template = promptTemplates.find(t => t.id === selectedValue);
         if (template) {
             customTextarea.value = template.prompt;
+            customTextarea.disabled = false;
             aiConfig.aiPromptTemplate = template.prompt;
             aiConfig.aiPromptTemplateId = template.id;
         }
@@ -111,8 +119,8 @@ function deleteCurrentPromptTemplate() {
     
     const currentId = select.value;
     
-    // 检查是否为自定义模板
-    if (!currentId.startsWith('custom_')) {
+    // 检查是否为预设模板（包括空模板）
+    if (currentId === 'empty' || !currentId.startsWith('custom_')) {
         showToast('预设模板不能删除', 'warning');
         return;
     }

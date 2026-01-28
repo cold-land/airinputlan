@@ -156,8 +156,15 @@ async function correctCardWithAI(cardWrapper, isAutoMode = false) {
     cardContent.innerHTML = '<span style="color: #999;">⏳AI正在处理...</span>';
 
     try {
-        // 构建提示词（只包含待处理文本）
-        const prompt = '待处理文本：' + originalText;
+        // 构建提示词
+        let prompt;
+        if (aiConfig.aiPromptTemplateId === 'empty') {
+            // 空模板：不添加前缀，直接使用原文
+            prompt = originalText;
+        } else {
+            // 其他模板：添加前缀
+            prompt = '待处理文本：' + originalText;
+        }
 
         let fixedText;
 
