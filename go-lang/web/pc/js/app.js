@@ -79,6 +79,10 @@ function createCard(text) {
 
     // 单击复制
     card.onclick = () => {
+        // 如果卡片处于编辑模式，不执行复制
+        if (card.classList.contains('editing')) {
+            return;
+        }
         const currentText = card.dataset.originalText || card.textContent;
         copyToBrowser(currentText);
         card.classList.add('copied');
