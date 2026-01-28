@@ -147,22 +147,13 @@ async function correctCardWithAI(cardWrapper, isAutoMode = false) {
     // 触发 ai:process:start 事件
     EventBus.emit('ai:process:start', card, originalText);
 
-    // 自动模式：显示"正在修正"提示
     // 手动模式：按钮显示加载状态
-    if (isAutoMode) {
-        // 在卡片右上角添加"正在修正"提示
-        const statusSpan = document.createElement('span');
-        statusSpan.className = 'ai-correction-status';
-        statusSpan.textContent = '🤖 正在修正...';
-        statusSpan.style.cssText = 'position: absolute; top: 5px; right: 5px; font-size: 12px; color: #999;';
-        cardWrapper.style.position = 'relative';
-        cardWrapper.appendChild(statusSpan);
-    } else {
+    if (!isAutoMode) {
         aiButton.textContent = '⏳';
         aiButton.disabled = true;
     }
     const originalContent = cardContent.innerHTML;
-    cardContent.innerHTML = '<span style="color: #999;">正在修正...</span>';
+    cardContent.innerHTML = '<span style="color: #999;">⏳AI正在处理...</span>';
 
     try {
         // 构建提示词（只包含待处理文本）
@@ -259,14 +250,6 @@ async function correctCardWithAI(cardWrapper, isAutoMode = false) {
         if (!isAutoMode) {
             aiButton.textContent = '🤖';
             aiButton.disabled = false;
-        }
-
-        // 移除"正在修正"提示
-        if (isAutoMode) {
-            const statusSpan = cardWrapper.querySelector('.ai-correction-status');
-            if (statusSpan) {
-                statusSpan.remove();
-            }
         }
     }
 }

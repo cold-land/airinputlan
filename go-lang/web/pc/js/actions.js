@@ -2,7 +2,7 @@
 
 // 全局标志位，用于防止并发请求（直接挂载到 window 对象）
 window.isAITestRunning = false;      // AI 测试是否正在运行
-window.isAIProcessingRunning = false;  // AI 修正是否正在运行
+window.isAIProcessingRunning = false;  // AI 处理是否正在运行
 window.aiRequestAbortController = null;  // 全局 AbortController，用于取消正在进行的请求
 
 /**
@@ -374,9 +374,9 @@ async function callIFlowAPI(prompt, onChunk, onComplete, options = {}, signal) {
 
 async function testAIConnection(provider, silent = false) {
 
-    // 如果有真实 AI 修正正在运行，跳过测试
+    // 如果有真实 AI 处理正在运行，跳过测试
     if (window.isAIProcessingRunning) {
-        console.log('AI 修正正在进行中，跳过测试');
+        console.log('AI 处理正在进行中，跳过测试');
         return;
     }
 
