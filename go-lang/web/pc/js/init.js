@@ -420,11 +420,19 @@ async function init() {
     setupEventSource();
 
     // 预热 AI 连接（静默模式）
-    if (aiConfig.provider && aiConfig.providers[aiConfig.provider]?.apiKey) {
-        console.log(`[预热开始] ${aiConfig.provider}`);
-        testAIConnection(aiConfig.provider, true)  // 静默模式
-            .then(() => console.log(`[预热结束] ${aiConfig.provider} [成功]`))
-            .catch((error) => console.log(`[预热结束] ${aiConfig.provider} [失败]`, error));
+    if (aiConfig.provider) {
+        const providerConfig = aiConfig.providers[aiConfig.provider];
+        // Ollama 检查 apiUrl，在线 API 检查 apiKey
+        const hasValidConfig = aiConfig.provider === 'ollama'
+            ? providerConfig?.apiUrl
+            : providerConfig?.apiKey;
+
+        if (hasValidConfig) {
+            console.log(`[预热开始] ${aiConfig.provider}`);
+            testAIConnection(aiConfig.provider, true)  // 静默模式
+                .then(() => console.log(`[预热结束] ${aiConfig.provider} [成功]`))
+                .catch((error) => console.log(`[预热结束] ${aiConfig.provider} [失败]`, error));
+        }
     }
 }
 

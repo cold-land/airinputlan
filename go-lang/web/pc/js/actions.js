@@ -113,11 +113,12 @@ function saveCardEdit(card, newText, originalText) {
  * @param {function} onComplete - 完成回调函数
  * @param {object} options - 可选参数 { stop: string[], num_predict: number }
  * @param {AbortSignal} signal - AbortSignal 用于取消请求
+ * @param {boolean} skipTemplate - 是否跳过提示词模板（测试场景）
  * @returns {Promise<string>} - AI 返回的处理后的文本
  */
-async function callOllamaAPI(prompt, onChunk, onComplete, options = {}, signal) {
-    // Ollama 使用简单格式，需要包含模板和待处理文本
-    const fullPrompt = aiConfig.aiPromptTemplate + '\n待处理文本：' + prompt;
+async function callOllamaAPI(prompt, onChunk, onComplete, options = {}, signal, skipTemplate = false) {
+    // skipTemplate 为 true 时直接使用 prompt（测试场景），否则添加模板
+    const fullPrompt = skipTemplate ? prompt : (aiConfig.aiPromptTemplate + '\n待处理文本：' + prompt);
     const requestBody = {
         model: aiConfig.providers.ollama.model,
         prompt: fullPrompt,
@@ -292,11 +293,9 @@ async function callIFlowAPI(prompt, onChunk, onComplete, options = {}, signal) {
     const requestBody = {
         model: model,
         messages: [
-            { role: "system", content: aiConfig.aiPromptTemplate },
             { role: "user", content: prompt }
         ],
         stream: true,
-        max_tokens: options.max_tokens || 1024,
         temperature: 0.3
     };
 
@@ -432,11 +431,15 @@ async function testAIConnection(provider, silent = false) {
 
 
 
-                    {},
+                    { stop: ['\n'] },
 
 
 
-                    window.aiRequestAbortController.signal
+                    window.aiRequestAbortController.signal,
+
+
+
+                    true  // skipTemplate = true，测试时不使用提示词模板
 
 
 
