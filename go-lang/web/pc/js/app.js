@@ -24,54 +24,6 @@ function toggleTheme() {
     saveTheme(isDark ? 'dark' : 'light');
 }
 
-// HTML 转义函数，防止 XSS 攻击
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
-
-// 检测重复字并高亮
-// 注意：此函数使用 innerHTML 插入内容，但所有用户输入都已通过 escapeHtml() 转义
-function highlightDuplicates(text) {
-    if (!text) return text;
-
-    // 先转义 HTML 特殊字符
-    const escapedText = escapeHtml(text);
-
-    let result = '';
-    let i = 0;
-
-    while (i < escapedText.length) {
-        // 检测双字重复
-        if (i + 3 < escapedText.length) {
-            const twoChars = escapedText.substring(i, i + 2);
-            const nextTwoChars = escapedText.substring(i + 2, i + 4);
-            if (twoChars === nextTwoChars) {
-                result += `<span class="highlight">${twoChars}${twoChars}</span>`;
-                i += 4;
-                continue;
-            }
-        }
-
-        // 检测单字重复
-        if (i + 1 < escapedText.length) {
-            const char = escapedText[i];
-            const nextChar = escapedText[i + 1];
-            if (char === nextChar) {
-                result += `<span class="highlight">${char}${char}</span>`;
-                i += 2;
-                continue;
-            }
-        }
-
-        result += escapedText[i];
-        i++;
-    }
-
-    return result;
-}
-
 // 初始化
 function init() {
     console.log('初始化...');
@@ -123,6 +75,12 @@ function registerEventListeners() {
         if (aiConfig.aiCorrectionMode === 'auto') {
             correctCardWithAI(card, true);
         }
+    });
+    
+    // 监听 AI 处理完成事件 - 执行复制动作
+    EventBus.on('ai:process:completed', (card, text) => {
+        copyToBrowser(text);
+        copyToServer(text);
     });
 }
 
@@ -430,7 +388,7 @@ function createCard(text) {
     // 单击复制
     card.onclick = () => {
         const currentText = card.dataset.originalText || card.textContent;
-        copyToClipboard(currentText);
+        copyToBrowser(currentText);
         card.classList.add('copied');
         setTimeout(() => card.classList.remove('copied'), 500);
     };
@@ -502,7 +460,6 @@ async function correctCardWithAI(cardWrapper, isAutoMode = false) {
             // 更新卡片内容
             card.dataset.originalText = fixedText;
             cardContent.innerHTML = highlightDuplicates(fixedText);
-            copyToClipboard(fixedText);
 
             // 触发 ai:process:completed 事件
             EventBus.emit('ai:process:completed', card, fixedText);
@@ -519,7 +476,6 @@ async function correctCardWithAI(cardWrapper, isAutoMode = false) {
                         throw new Error('AI返回空结果');
                     }
                     card.dataset.originalText = fullText;
-                    copyToClipboard(fullText);
 
                     // 触发 ai:process:completed 事件
                     EventBus.emit('ai:process:completed', card, fullText);
@@ -600,7 +556,7 @@ function enterEditMode(card, originalText) {
             cardContent.innerHTML = highlightDuplicates(newText);
             // 更新 data-original-text 属性
             card.dataset.originalText = newText;
-            copyToClipboard(newText);
+            copyToBrowser(newText);
         } else {
             // 恢复原始内容（带高亮）
             cardContent.innerHTML = highlightDuplicates(originalText);
@@ -617,13 +573,6 @@ function enterEditMode(card, originalText) {
     };
 }
 
-// 复制到剪贴板
-function copyToClipboard(text) {
-    navigator.clipboard.writeText(text).catch(err => {
-        console.error('复制失败:', err);
-    });
-}
-
 // 隐藏显控区
 function hideControlPanel() {
     console.log('隐藏显控区');
@@ -634,202 +583,4 @@ function hideControlPanel() {
 function showControlPanel() {
     console.log('显示显控区');
     document.getElementById('control-panel').classList.remove('hidden');
-}
-
-// 调用本地 Ollama API
-async function callLocalAPI(prompt) {
-    const response = await fetch(aiConfig.localApiUrl, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            model: aiConfig.localModel,
-            prompt: prompt,
-            stream: false,
-            options: {
-                temperature: 0.0,
-                top_p: 1.0,
-                num_ctx: 2048
-            }
-        })
-    });
-
-    if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-    }
-
-    const data = await response.json();
-    return data.response;
-}
-
-// 调用在线 API（智谱 AI / 阿里心流）- 支持流式输出
-async function callOnlineAPI(prompt, onChunk, onComplete) {
-    // 根据 provider 选择 API 地址和请求体
-    const provider = aiConfig.onlineProvider || 'zhipu';
-    const apiKey = aiConfig.onlineApiKeys && aiConfig.onlineApiKeys[provider];
-    const model = aiConfig.onlineModels && aiConfig.onlineModels[provider];
-
-    if (!apiKey) {
-        throw new Error(`未配置 ${provider} 的 API Key`);
-    }
-
-    if (!model) {
-        throw new Error(`未配置 ${provider} 的模型名称`);
-    }
-
-    let apiUrl = '';
-    let requestBody = {
-        model: model,
-        messages: [
-            {
-                role: "system",
-                content: aiConfig.aiPromptTemplate
-            },
-            {
-                role: "user",
-                content: prompt
-            }
-        ],
-        stream: true,
-        max_tokens: 1024,
-        temperature: 0.3
-    };
-
-    switch (provider) {
-        case 'iflow':
-            apiUrl = 'https://apis.iflow.cn/v1/chat/completions';
-            // 阿里心流不需要 thinking 参数
-            break;
-        case 'zhipu':
-        default:
-            apiUrl = 'https://open.bigmodel.cn/api/paas/v4/chat/completions';
-            // 清华智谱需要 thinking 参数
-            requestBody.thinking = {
-                type: "disabled"
-            };
-            break;
-    }
-
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 60000); // 60秒超时（流式输出可能需要更长时间）
-
-    try {
-        console.log('调用在线 API:', {
-            provider: provider,
-            apiUrl: apiUrl,
-            model: model,
-            apiKey: apiKey.substring(0, 10) + '...'
-        });
-
-        const response = await fetch(apiUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`
-            },
-            body: JSON.stringify(requestBody),
-            signal: controller.signal
-        });
-
-        clearTimeout(timeoutId);
-
-        console.log('AI 响应状态:', response.status, response.statusText);
-
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error('AI 响应错误:', errorText);
-            try {
-                const errorData = JSON.parse(errorText);
-                throw new Error(`HTTP ${response.status}: ${errorData.error?.message || errorData.message || response.statusText}`);
-            } catch (e) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText} - ${errorText.substring(0, 200)}`);
-            }
-        }
-
-        let fullContent = '';
-
-        // 读取流式响应
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        let chunkCount = 0;
-
-        while (true) {
-            const { done, value } = await reader.read();
-            if (done) {
-                console.log(`流式读取完成，共读取 ${chunkCount} 个数据块`);
-                break;
-            }
-
-            // 解码数据块
-            const chunk = decoder.decode(value, { stream: true });
-            chunkCount++;
-            console.log(`读取数据块 #${chunkCount}, 长度: ${chunk.length}`);
-            console.log(`AI 响应数据块: ${chunk}`);
-
-            // 检查是否包含有效的 SSE 数据
-            if (chunk.includes('data:')) {
-                // 解析所有数据块
-                const lines = chunk.split('\n');
-                for (const line of lines) {
-                    if (line.startsWith('data:')) {
-                        const data = line.slice(5).trim(); // 移除 'data:' 前缀
-                        if (data === '[DONE]') {
-                            console.log('收到 [DONE] 信号');
-                            continue; // 流式输出结束
-                        }
-                        if (!data) {
-                            continue;
-                        }
-                        try {
-                            const json = JSON.parse(data);
-                            console.log('解析 JSON:', json);
-                            if (json.choices && json.choices.length > 0) {
-                                const delta = json.choices[0].delta;
-                                console.log('Delta 内容:', delta);
-                                // 检查是否有实际内容（content 或 reasoning_content）
-                                if (delta && (delta.content || delta.reasoning_content)) {
-                                    if (delta.content) {
-                                        fullContent += delta.content;
-                                        console.log(`累积内容长度: ${fullContent.length}, 新增: "${delta.content}"`);
-                                        // 实时更新卡片内容
-                                        if (onChunk) {
-                                            onChunk(fullContent);
-                                        }
-                                    }
-                                    if (delta.reasoning_content) {
-                                        console.log(`收到 reasoning_content: "${delta.reasoning_content}"`);
-                                    }
-                                } else if (delta && delta.role) {
-                                    // 只有 role，没有 content，继续等待
-                                    console.log(`收到 role 信息，继续等待 content: ${delta.role}`);
-                                }
-                            }
-                        } catch (e) {
-                            console.error('解析 JSON 失败:', e, '数据:', data);
-                        }
-                    }
-                }
-            }
-        }
-
-        console.log('AI 响应完成，最终内容长度:', fullContent.length);
-        if (fullContent.length > 0) {
-            console.log('AI 响应内容预览:', fullContent.substring(0, 100) + (fullContent.length > 100 ? '...' : ''));
-        } else {
-            console.error('AI 响应内容为空！');
-        }
-
-        // 流式输出完成
-        if (onComplete) {
-            onComplete(fullContent);
-        }
-
-        return fullContent;
-    } catch (error) {
-        if (error.name === 'AbortError') {
-            throw new Error('请求超时（60秒），请检查网络连接');
-        }
-        throw error;
-    }
 }
