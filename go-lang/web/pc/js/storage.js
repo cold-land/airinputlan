@@ -145,9 +145,6 @@ function loadCustomTemplates() {
     }
 
     const templates = loadFromStorage(STORAGE_KEYS.CUSTOM_TEMPLATES, []);
-    if (templates.length > 0) {
-        console.log('已加载', templates.length, '个自定义模板');
-    }
     return templates;
 }
 
