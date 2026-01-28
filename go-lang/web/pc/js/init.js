@@ -113,12 +113,6 @@ async function loadPromptTemplates() {
                 select.appendChild(option);
             });
 
-            // 添加"自定义"选项
-            const customOption = document.createElement('option');
-            customOption.value = 'custom';
-            customOption.textContent = '新增自定义模板';
-            select.appendChild(customOption);
-
             // 默认选择
             select.value = aiConfig.aiPromptTemplateId || 'default';
             handlePromptTemplateChange();
