@@ -565,10 +565,80 @@
         }
 
         .ai-config-item textarea + label {
-            display: block;
-        }
 
-        .ai-config-actions {
+                    display: block;
+
+                }
+
+        
+
+                .ai-template-btn {
+
+                    flex: 0 0 30px;
+
+                    width: 30px;
+
+                    height: 34px;
+
+                    padding: 0;
+
+                    margin-left: 8px;
+
+                    border: 1px solid #ddd;
+
+                    border-radius: 4px;
+
+                    background: white;
+
+                    color: #333;
+
+                    font-size: 18px;
+
+                    font-weight: bold;
+
+                    cursor: pointer;
+
+                    transition: background 0.3s, border-color 0.3s;
+
+                }
+
+        
+
+                .ai-template-btn:hover {
+
+                    background: #f0f0f0;
+
+                    border-color: #999;
+
+                }
+
+        
+
+                body.dark-theme .ai-template-btn {
+
+                    background: #333;
+
+                    border-color: #555;
+
+                    color: #e0e0e0;
+
+                }
+
+        
+
+                body.dark-theme .ai-template-btn:hover {
+
+                    background: #444;
+
+                    border-color: #777;
+
+                }
+
+        
+
+        
+
+                .ai-config-actions {
             display: flex;
             gap: 10px;
             margin-bottom: 20px;

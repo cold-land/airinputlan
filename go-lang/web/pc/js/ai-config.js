@@ -81,6 +81,61 @@ function handlePromptTemplateChange() {
     }
 }
 
+// 新增提示词模板
+function addNewPromptTemplate() {
+    const customTemplate = {
+        id: 'custom_' + Date.now(),
+        name: '自定义' + (loadCustomTemplates().length + 1),
+        prompt: ''
+    };
+    
+    saveCustomTemplate(customTemplate);
+    
+    // 刷新下拉选框
+    loadPromptTemplates().then(() => {
+        const select = document.getElementById('ai-prompt-template');
+        if (select) {
+            select.value = customTemplate.id;
+            aiConfig.aiPromptTemplateId = customTemplate.id;
+            aiConfig.aiPromptTemplate = '';
+            document.getElementById('ai-prompt').value = '';
+            showToast('已创建新模板，请输入提示词内容', 'info');
+        }
+    });
+}
+
+// 删除当前提示词模板
+function deleteCurrentPromptTemplate() {
+    const select = document.getElementById('ai-prompt-template');
+    if (!select) return;
+    
+    const currentId = select.value;
+    
+    // 检查是否为自定义模板
+    if (!currentId.startsWith('custom_')) {
+        showToast('预设模板不能删除', 'warning');
+        return;
+    }
+    
+    // 确认删除
+    if (!confirm('确定要删除这个模板吗？此操作不可撤销。')) {
+        return;
+    }
+    
+    // 删除模板
+    deleteCustomTemplate(currentId);
+    
+    // 刷新下拉选框并切换到默认模板
+    loadPromptTemplates().then(() => {
+        const newSelect = document.getElementById('ai-prompt-template');
+        if (newSelect) {
+            newSelect.value = 'default';
+            handlePromptTemplateChange();
+            showToast('模板已删除', 'success');
+        }
+    });
+}
+
 // 导出配置
 function exportAIConfig() {
     const config = {
