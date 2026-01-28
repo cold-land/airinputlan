@@ -4,7 +4,11 @@ const EventBus = {
         'card:created': [],
         'card:added': [],
         'ai:process:start': [],
-        'ai:process:completed': []
+        'ai:process:completed': [],
+        'ai:test:start': [],
+        'ai:test:end': [],
+        'ai:test:success': [],
+        'ai:test:failed': []
     },
 
     // 注册事件监听器

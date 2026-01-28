@@ -48,6 +48,14 @@ function init() {
 
     loadServerInfo();
     setupEventSource();
+
+    // 预热 AI 连接（静默模式）
+    if (aiConfig.provider && aiConfig.providers[aiConfig.provider]?.apiKey) {
+        console.log(`预热 AI 连接: ${aiConfig.provider}`);
+        testAIConnection(aiConfig.provider, true)  // 静默模式
+            .then(() => console.log(`AI 预热成功: ${aiConfig.provider}`))
+            .catch((error) => console.log(`AI 预热失败: ${aiConfig.provider}`, error));
+    }
 }
 
 // 加载主题设置
@@ -76,11 +84,31 @@ function registerEventListeners() {
             correctCardWithAI(card, true);
         }
     });
-    
+
     // 监听 AI 处理完成事件 - 执行复制动作
     EventBus.on('ai:process:completed', (card, text) => {
         copyToBrowser(text);
         copyToServer(text);
+    });
+
+    // 监听 AI 测试开始事件
+    EventBus.on('ai:test:start', (provider) => {
+        console.log(`AI 测试开始: ${provider}`);
+    });
+
+    // 监听 AI 测试结束事件
+    EventBus.on('ai:test:end', (provider) => {
+        console.log(`AI 测试结束: ${provider}`);
+    });
+
+    // 监听 AI 测试成功事件
+    EventBus.on('ai:test:success', (provider) => {
+        console.log(`AI 测试成功: ${provider}`);
+    });
+
+    // 监听 AI 测试失败事件
+    EventBus.on('ai:test:failed', (provider, error) => {
+        console.log(`AI 测试失败: ${provider}`, error);
     });
 }
 
@@ -234,7 +262,6 @@ function setupEventSource() {
     eventSource.addEventListener('message', (event) => {
         try {
             const data = JSON.parse(event.data);
-            console.log('收到 message 事件:', data);
             handleMessage(data);
         } catch (error) {
             console.error('解析消息失败:', error);
@@ -271,11 +298,8 @@ function setupEventSource() {
 
 // 处理消息
 function handleMessage(message) {
-    console.log('处理消息:', message);
-
     if (message.type === 'text') {
         // 收到文本消息：直接更新底部输入区
-        console.log('收到文本消息:', message.data);
         updateCurrentInput(message.data);
     } else if (message.type === 'segment') {
         // 收到分段信号（旧逻辑）：把底部内容变成卡片，清空底部
@@ -315,8 +339,6 @@ function handleMessage(message) {
 
 // 更新当前输入（带防抖）
 function updateCurrentInput(text) {
-    console.log('更新输入区，内容长度:', text.length);
-
     // 清除之前的定时器
     if (updateTimeout) {
         clearTimeout(updateTimeout);
@@ -324,7 +346,6 @@ function updateCurrentInput(text) {
 
     // 防抖：50ms 后更新
     updateTimeout = setTimeout(() => {
-        console.log('执行 DOM 更新');
         document.getElementById('current-input').textContent = text;
     }, 50); // 50ms 防抖
 }
@@ -415,13 +436,42 @@ async function correctCardWithAI(cardWrapper, isAutoMode = false) {
     const originalText = card.dataset.originalText;
     if (!originalText) {
         if (!isAutoMode) {
-            alert('没有可修正的文本！');
+            showToast('没有可修正的文本！', 'warning', true);
         }
         return;
     }
 
     const aiButton = cardWrapper.querySelector('.ai-correct-button');
     const cardContent = card.querySelector('.card-content');
+
+    // 如果有 AI 请求正在进行，提示用户并返回
+    if (window.isAITestRunning || window.isAIProcessingRunning) {
+        showToast('AI 请求正在进行中，请稍候', 'info', true);
+        return;
+    }
+
+    // 取消正在进行的请求（理论上不应该有）
+    if (window.aiRequestAbortController) {
+        window.aiRequestAbortController.abort();
+        console.log('已取消正在进行的 AI 请求');
+    }
+
+    // 创建新的 AbortController
+    window.aiRequestAbortController = new AbortController();
+
+    // 双重检查：再次确认没有其他请求正在进行（防止竞态条件）
+    if (window.isAIProcessingRunning) {
+        console.log('检测到竞态条件，放弃当前请求');
+        window.aiRequestAbortController = null;
+        if (!isAutoMode) {
+            aiButton.textContent = '🤖';
+            aiButton.disabled = false;
+        }
+        return;
+    }
+
+    // 设置 AI 修正运行标志
+    window.isAIProcessingRunning = true;
 
     // 触发 ai:process:start 事件
     EventBus.emit('ai:process:start', card, originalText);
@@ -450,79 +500,96 @@ async function correctCardWithAI(cardWrapper, isAutoMode = false) {
         let fixedText;
 
         // 根据提供商选择调用不同的 API
-        if (aiConfig.aiProvider === 'local') {
-            fixedText = await callOllamaAPI(prompt);
+        if (aiConfig.provider === 'ollama') {
+            // Ollama API 使用流式输出
+            await callOllamaAPI(prompt,
+                // onChunk - 实时更新卡片内容
+                (chunk) => {
+                    // 只有当有内容时才更新，避免卡片被清空
+                    if (chunk && chunk.trim()) {
+                        cardContent.innerHTML = highlightDuplicates(chunk);
+                    }
+                },
+                // onComplete - 流式输出完成
+                (fullText) => {
+                    if (!fullText || fullText.trim() === '') {
+                        throw new Error('AI返回空结果');
+                    }
+                    card.dataset.originalText = fullText;
 
-            if (!fixedText || fixedText.trim() === '') {
-                throw new Error('AI返回空结果');
-            }
+                    // 触发 ai:process:completed 事件
+                    EventBus.emit('ai:process:completed', card, fullText);
+                },
+                {},
+                window.aiRequestAbortController.signal
+            );
+        } else if (aiConfig.provider === 'iflow') {
+            // Iflow API 使用流式输出
+            await callIFlowAPI(prompt,
+                // onChunk - 实时更新卡片内容
+                (chunk) => {
+                    cardContent.innerHTML = highlightDuplicates(chunk);
+                },
+                // onComplete - 流式输出完成
+                (fullText) => {
+                    if (!fullText || fullText.trim() === '') {
+                        throw new Error('AI返回空结果');
+                    }
+                    card.dataset.originalText = fullText;
 
-            // 更新卡片内容
-            card.dataset.originalText = fixedText;
-            cardContent.innerHTML = highlightDuplicates(fixedText);
-
-            // 触发 ai:process:completed 事件
-            EventBus.emit('ai:process:completed', card, fixedText);
+                    // 触发 ai:process:completed 事件
+                    EventBus.emit('ai:process:completed', card, fullText);
+                },
+                {},
+                window.aiRequestAbortController.signal
+            );
         } else {
-            // 在线 API 使用流式输出
-            // 根据提供商选择不同的函数
-            if (aiConfig.onlineProvider === 'iflow') {
-                await callIFlowAPI(prompt,
-                    // onChunk - 实时更新卡片内容
-                    (chunk) => {
-                        cardContent.innerHTML = highlightDuplicates(chunk);
-                    },
-                    // onComplete - 流式输出完成
-                    (fullText) => {
-                        if (!fullText || fullText.trim() === '') {
-                            throw new Error('AI返回空结果');
-                        }
-                        card.dataset.originalText = fullText;
-
-                        // 触发 ai:process:completed 事件
-                        EventBus.emit('ai:process:completed', card, fullText);
+            // 默认智谱 AI
+            await callZhipuAPI(prompt,
+                // onChunk - 实时更新卡片内容
+                (chunk) => {
+                    cardContent.innerHTML = highlightDuplicates(chunk);
+                },
+                // onComplete - 流式输出完成
+                (fullText) => {
+                    if (!fullText || fullText.trim() === '') {
+                        throw new Error('AI返回空结果');
                     }
-                );
-            } else {
-                // 默认智谱 AI
-                await callZhipuAPI(prompt,
-                    // onChunk - 实时更新卡片内容
-                    (chunk) => {
-                        cardContent.innerHTML = highlightDuplicates(chunk);
-                    },
-                    // onComplete - 流式输出完成
-                    (fullText) => {
-                        if (!fullText || fullText.trim() === '') {
-                            throw new Error('AI返回空结果');
-                        }
-                        card.dataset.originalText = fullText;
+                    card.dataset.originalText = fullText;
 
-                        // 触发 ai:process:completed 事件
-                        EventBus.emit('ai:process:completed', card, fullText);
-                    }
-                );
-            }
+                    // 触发 ai:process:completed 事件
+                    EventBus.emit('ai:process:completed', card, fullText);
+                },
+                {},
+                window.aiRequestAbortController.signal
+            );
         }
     } catch (error) {
         console.error('AI修正失败:', error);
         let providerName = '未知';
-        if (aiConfig.aiProvider === 'local') {
+        if (aiConfig.provider === 'ollama') {
             providerName = 'Ollama';
-        } else if (aiConfig.onlineProvider === 'iflow') {
+        } else if (aiConfig.provider === 'iflow') {
             providerName = '阿里心流';
         } else {
             providerName = '清华智谱';
         }
-        alert(`AI修正失败：${error.message}\n请检查${providerName}服务是否正常运行`);
+        showToast(`AI修正失败：${error.message}\n请检查${providerName}服务是否正常运行`, 'error', true);
         // 恢复原始内容
         cardContent.innerHTML = originalContent;
     } finally {
+        // 重置 AI 修正运行标志
+        window.isAIProcessingRunning = false;
+
+        // 清理 AbortController
+        window.aiRequestAbortController = null;
+
         // 恢复按钮状态
         if (!isAutoMode) {
             aiButton.textContent = '🤖';
             aiButton.disabled = false;
         }
-        
+
         // 移除"正在修正"提示
         if (isAutoMode) {
             const statusSpan = cardWrapper.querySelector('.ai-correction-status');

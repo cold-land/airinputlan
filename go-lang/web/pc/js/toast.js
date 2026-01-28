@@ -1,6 +1,8 @@
 // Toast 提示系统
 let currentToast = null;
 let autoCloseTimer = null;
+const MIN_DISPLAY_TIME = 1000;  // 最小显示时间：1秒
+let toastCreateTime = null;  // Toast 创建时间
 
 // 显示 Toast
 function showToast(message, type = 'info', autoClose = true) {
@@ -8,33 +10,35 @@ function showToast(message, type = 'info', autoClose = true) {
     if (currentToast) {
         closeToast(currentToast);
     }
-    
+
     // 清除自动关闭定时器
     if (autoCloseTimer) {
         clearTimeout(autoCloseTimer);
         autoCloseTimer = null;
     }
-    
+
     // 创建 Toast 元素
     const toast = createToastElement(message, type);
     currentToast = toast;
-    
+    toastCreateTime = Date.now();  // 记录创建时间
+
     // 添加到容器
     const container = document.getElementById('toast-container');
     if (container) {
         container.appendChild(toast);
     }
-    
+
     // 自动关闭
     if (autoClose && type !== 'error') {
+        const autoCloseDelay = Math.max(2000, MIN_DISPLAY_TIME);  // 至少显示 1 秒
         autoCloseTimer = setTimeout(() => {
             if (currentToast === toast) {
                 closeToast(toast);
                 currentToast = null;
             }
-        }, 2000);
+        }, autoCloseDelay);
     }
-    
+
     return toast;
 }
 
