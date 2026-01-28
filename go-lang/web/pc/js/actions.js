@@ -206,11 +206,9 @@ async function callZhipuAPI(prompt, onChunk, onComplete, options = {}, signal) {
     const requestBody = {
         model: model,
         messages: [
-            { role: "system", content: aiConfig.aiPromptTemplate },
             { role: "user", content: prompt }
         ],
         stream: true,
-        max_tokens: options.max_tokens || 1024,
         temperature: 0.3,
         thinking: { type: "disabled" }  // 智谱 AI 特有参数
     };
@@ -246,19 +244,21 @@ async function callZhipuAPI(prompt, onChunk, onComplete, options = {}, signal) {
         const lines = chunk.split('\n');
 
         for (const line of lines) {
-            if (line.startsWith('data:')) {
-                const data = line.slice(5).trim();
-                if (data === '[DONE]') continue;
+            if (line.startsWith('data: ')) {
+                const data = line.slice(6);
+                if (data === '[DONE]') break;
 
                 try {
                     const json = JSON.parse(data);
-                    const content = json.choices[0]?.delta?.content;
-                    if (content) {
-                        fullText += content;
-                        onChunk(fullText);
+                    if (json.choices && json.choices.length > 0) {
+                        const delta = json.choices[0].delta;
+                        if (delta && delta.content) {
+                            fullText += delta.content;
+                            onChunk(fullText);
+                        }
                     }
                 } catch (e) {
-                    // 忽略解析错误
+                    console.error('解析流式数据失败:', e);
                 }
             }
         }
@@ -389,33 +389,15 @@ async function testAIConnection(provider, silent = false) {
     // 创建新的 AbortController
     window.aiRequestAbortController = new AbortController();
 
-    const testPrompt = '测试';
+    const testPrompt = '你是一个测试助手，请回复"测试成功"';
     let receivedData = false;
     const actionType = silent ? '预热' : '测试';
     console.log(`[${actionType}开始] ${provider}`);
 
-
-
-    // 临时保存当前的提示词模板
-
-    const originalPromptTemplate = aiConfig.aiPromptTemplate;
-
-
-
-    // 使用简短的测试提示词
-
-    aiConfig.aiPromptTemplate = '你是一个测试助手，请回复"测试成功"';
-
-
-
     // 设置测试运行标志
-
     window.isAITestRunning = true;
 
-
-
     // 触发测试开始事件
-
     EventBus.emit('ai:test:start', provider);
 
 
@@ -592,9 +574,6 @@ async function testAIConnection(provider, silent = false) {
 
     } finally {
         console.log(`[${actionType}结束] ${provider}`);
-
-        // 恢复原始的提示词模板
-        aiConfig.aiPromptTemplate = originalPromptTemplate;
 
         // 重置测试运行标志
         window.isAITestRunning = false;

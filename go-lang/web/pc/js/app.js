@@ -162,8 +162,8 @@ async function correctCardWithAI(cardWrapper, isAutoMode = false) {
             // 空模板：不添加前缀，直接使用原文
             prompt = originalText;
         } else {
-            // 其他模板：添加前缀
-            prompt = '待处理文本：' + originalText;
+            // 其他模板：添加提示词模板和前缀
+            prompt = aiConfig.aiPromptTemplate + '\n\n待处理文本：' + originalText;
         }
 
         let fixedText;
