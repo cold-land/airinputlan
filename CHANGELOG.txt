@@ -25,7 +25,9 @@ v1.2.6 (2026-01-28)
 
 修复问题 / Bug Fixes:
   * 修复 Ollama API 预热失败问题
+  * 修复编辑模式下点击历史卡片重复复制问题
   * Fixed Ollama API warmup failure
+  * Fixed duplicate copy issue when clicking history cards in edit mode
 
 
 v1.2.5 (2026-01-27)
