@@ -497,11 +497,16 @@
 
         .ai-config-item {
             margin-bottom: 20px;
+            display: flex;
+            align-items: center;
         }
 
         .ai-config-item label {
-            display: block;
-            margin-bottom: 8px;
+            display: inline-block;
+            margin-right: 15px;
+            width: 120px;
+            text-align: right;
+            white-space: nowrap;
             font-weight: 500;
             color: #333;
             transition: color 0.3s;
@@ -513,7 +518,18 @@
 
         .ai-config-item input[type="text"],
         .ai-config-item input[type="password"],
-        .ai-config-item select,
+        .ai-config-item select {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            font-family: inherit;
+            background: white;
+            color: #333;
+            transition: background 0.3s, border-color 0.3s, color 0.3s;
+        }
+
         .ai-config-item textarea {
             width: 100%;
             padding: 10px;
@@ -524,6 +540,7 @@
             background: white;
             color: #333;
             transition: background 0.3s, border-color 0.3s, color 0.3s;
+            resize: vertical;
         }
 
         body.dark-theme .ai-config-item input[type="text"],
@@ -537,6 +554,12 @@
 
         .ai-config-item textarea {
             resize: vertical;
+            display: block;
+            width: 100%;
+        }
+
+        .ai-config-item textarea + label {
+            display: block;
         }
 
         .ai-config-actions {
