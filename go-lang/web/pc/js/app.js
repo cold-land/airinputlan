@@ -91,6 +91,9 @@ function init() {
     // 加载 AI 配置
     loadAISettings();
 
+    // 注册事件监听器
+    registerEventListeners();
+
     loadServerInfo();
     setupEventSource();
 }
@@ -111,6 +114,16 @@ function loadThemeSettings() {
 function loadAISettings() {
     // AI 配置的加载在 ai-config.js 中处理
     // 这里只是确保 storage.js 和 ai-config.js 都已加载
+}
+
+// 注册事件监听器
+function registerEventListeners() {
+    // 监听卡片添加事件 - 自动 AI 修正
+    EventBus.on('card:added', (card, text) => {
+        if (aiConfig.aiCorrectionMode === 'auto') {
+            correctCardWithAI(card, true);
+        }
+    });
 }
 
 // 加载服务器信息
@@ -373,10 +386,8 @@ function addCard(text) {
     // 滚动到底部
     container.scrollTop = container.scrollHeight;
 
-    // 自动 AI 修正
-    if (aiConfig.aiCorrectionMode === 'auto') {
-        correctCardWithAI(card, true);
-    }
+    // 触发 card:added 事件
+    EventBus.emit('card:added', card, text);
 }
 
 // 创建卡片
@@ -434,6 +445,9 @@ function createCard(text) {
     cardWrapper.appendChild(aiButton);
     cardWrapper.appendChild(card);
 
+    // 触发 card:created 事件
+    EventBus.emit('card:created', card, text);
+
     return cardWrapper;
 }
 
@@ -450,6 +464,9 @@ async function correctCardWithAI(cardWrapper, isAutoMode = false) {
 
     const aiButton = cardWrapper.querySelector('.ai-correct-button');
     const cardContent = card.querySelector('.card-content');
+
+    // 触发 ai:process:start 事件
+    EventBus.emit('ai:process:start', card, originalText);
 
     // 自动模式：显示"正在修正"提示
     // 手动模式：按钮显示加载状态
@@ -486,6 +503,9 @@ async function correctCardWithAI(cardWrapper, isAutoMode = false) {
             card.dataset.originalText = fixedText;
             cardContent.innerHTML = highlightDuplicates(fixedText);
             copyToClipboard(fixedText);
+
+            // 触发 ai:process:completed 事件
+            EventBus.emit('ai:process:completed', card, fixedText);
         } else {
             // 在线 API 使用流式输出
             await callOnlineAPI(prompt,
@@ -500,6 +520,9 @@ async function correctCardWithAI(cardWrapper, isAutoMode = false) {
                     }
                     card.dataset.originalText = fullText;
                     copyToClipboard(fullText);
+
+                    // 触发 ai:process:completed 事件
+                    EventBus.emit('ai:process:completed', card, fullText);
                 }
             );
         }
