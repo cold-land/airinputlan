@@ -58,6 +58,25 @@ function highlightDuplicates(text) {
 }
 
 /**
+ * 渲染卡片内容
+ * 根据提示词模板类型选择渲染方式
+ * @param {string} text - 文本内容
+ * @param {string} templateId - 提示词模板 ID
+ * @returns {string} - 渲染后的 HTML
+ */
+function renderCardContent(text, templateId) {
+    if (!text) return text;
+    
+    // 空提示词模式：使用 Markdown 渲染
+    if (templateId === 'empty') {
+        return marked.parse(text);
+    }
+    
+    // 其他模式：使用重复字高亮
+    return highlightDuplicates(text);
+}
+
+/**
  * 浏览器复制
  * 使用 navigator.clipboard API 复制文本到剪贴板
  */
@@ -93,13 +112,13 @@ function saveCardEdit(card, newText, originalText) {
     const cardContent = card.querySelector('.card-content');
 
     if (newText && newText !== originalText) {
-        // 更新卡片内容（带高亮）
-        cardContent.innerHTML = highlightDuplicates(newText);
+        // 更新卡片内容（带高亮或 Markdown）
+        cardContent.innerHTML = renderCardContent(newText, aiConfig.aiPromptTemplateId);
         // 更新 data-original-text 属性
         card.dataset.originalText = newText;
     } else {
-        // 恢复原始内容（带高亮）
-        cardContent.innerHTML = highlightDuplicates(originalText);
+        // 恢复原始内容（带高亮或 Markdown）
+        cardContent.innerHTML = renderCardContent(originalText, aiConfig.aiPromptTemplateId);
     }
 
     // 移除编辑状态

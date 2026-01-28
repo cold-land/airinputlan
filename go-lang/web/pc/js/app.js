@@ -70,7 +70,7 @@ function createCard(text) {
     // 卡片内容
     const cardContent = document.createElement('div');
     cardContent.className = "card-content";
-    cardContent.innerHTML = highlightDuplicates(text);
+    cardContent.innerHTML = renderCardContent(text, aiConfig.aiPromptTemplateId);
 
     card.appendChild(cardContent);
 
@@ -180,7 +180,7 @@ async function correctCardWithAI(cardWrapper, isAutoMode = false) {
                 (chunk) => {
                     // 只有当有内容时才更新，避免卡片被清空
                     if (chunk && chunk.trim()) {
-                        cardContent.innerHTML = highlightDuplicates(chunk);
+                        cardContent.innerHTML = renderCardContent(chunk, aiConfig.aiPromptTemplateId);
                     }
                 },
                 // onComplete - 流式输出完成
@@ -201,7 +201,7 @@ async function correctCardWithAI(cardWrapper, isAutoMode = false) {
             await callIFlowAPI(prompt,
                 // onChunk - 实时更新卡片内容
                 (chunk) => {
-                    cardContent.innerHTML = highlightDuplicates(chunk);
+                    cardContent.innerHTML = renderCardContent(chunk, aiConfig.aiPromptTemplateId);
                 },
                 // onComplete - 流式输出完成
                 (fullText) => {
@@ -221,7 +221,7 @@ async function correctCardWithAI(cardWrapper, isAutoMode = false) {
             await callZhipuAPI(prompt,
                 // onChunk - 实时更新卡片内容
                 (chunk) => {
-                    cardContent.innerHTML = highlightDuplicates(chunk);
+                    cardContent.innerHTML = renderCardContent(chunk, aiConfig.aiPromptTemplateId);
                 },
                 // onComplete - 流式输出完成
                 (fullText) => {
@@ -323,7 +323,7 @@ function enterEditMode(card, originalText) {
     textarea.onblur = confirmEdit;
     textarea.onkeydown = (e) => {
         if (e.key === 'Escape') {
-            cardContent.innerHTML = highlightDuplicates(originalText);
+            cardContent.innerHTML = renderCardContent(originalText, aiConfig.aiPromptTemplateId);
             card.classList.remove('editing');
         }
     };

@@ -842,3 +842,85 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
             cursor: default;
         }
+
+/* Markdown 样式（亮色主题） */
+.card-content h1,
+.card-content h2,
+.card-content h3,
+.card-content h4,
+.card-content h5,
+.card-content h6 {
+    margin: 0.5em 0;
+    font-weight: 600;
+}
+
+.card-content h1 { font-size: 1.5em; }
+.card-content h2 { font-size: 1.3em; }
+.card-content h3 { font-size: 1.1em; }
+
+.card-content ul,
+.card-content ol {
+    margin: 0.5em 0;
+    padding-left: 1.5em;
+}
+
+.card-content li {
+    margin: 0.3em 0;
+}
+
+.card-content p {
+    margin: 0.5em 0;
+    line-height: 1.6;
+}
+
+.card-content strong {
+    font-weight: 600;
+}
+
+.card-content em {
+    font-style: italic;
+}
+
+.card-content code {
+    background: #f0f0f0;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-family: monospace;
+    font-size: 0.9em;
+}
+
+.card-content pre {
+    background: #f5f5f5;
+    padding: 12px;
+    border-radius: 5px;
+    overflow-x: auto;
+    margin: 0.5em 0;
+}
+
+.card-content pre code {
+    background: none;
+    padding: 0;
+}
+
+.card-content blockquote {
+    border-left: 4px solid #ddd;
+    margin: 0.5em 0;
+    padding-left: 1em;
+    color: #666;
+}
+
+/* Markdown 暗色主题适配 */
+body.dark-theme .card-content code {
+    background: #3a3a3a;
+    color: #e0e0e0;
+}
+
+body.dark-theme .card-content pre {
+    background: #2d2d2d;
+    color: #e0e0e0;
+}
+
+body.dark-theme .card-content blockquote {
+    border-left-color: #555;
+    color: #aaa;
+}
