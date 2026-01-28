@@ -156,6 +156,11 @@ function registerEventListeners() {
     EventBus.on('ai:test:failed', (provider, error) => {
         // 事件触发，日志已在 actions.js 中输出
     });
+
+    // 监听 AI 配置取消事件
+    EventBus.on('ai:config:cancelled', () => {
+        closeAISettingsModal();
+    });
 }
 
 // 加载服务器信息

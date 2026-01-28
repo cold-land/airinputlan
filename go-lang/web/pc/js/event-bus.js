@@ -10,7 +10,8 @@ const EventBus = {
         'ai:test:start': [],
         'ai:test:end': [],
         'ai:test:success': [],
-        'ai:test:failed': []
+        'ai:test:failed': [],
+        'ai:config:cancelled': []  // AI配置取消
     },
 
     // 注册事件监听器

@@ -607,3 +607,50 @@ async function testAIConnection(provider, silent = false) {
     }
 
 }
+
+// 关闭AI设置模态框
+function closeAISettingsModal() {
+    const modal = document.getElementById('ai-settings-modal');
+    if (modal) {
+        modal.classList.add('hidden');
+    }
+}
+
+// 打开AI设置模态框
+function openAISettingsModal() {
+    const modal = document.getElementById('ai-settings-modal');
+    if (!modal) return;
+
+    // 填充当前配置
+    document.getElementById('ai-mode-manual').checked = aiConfig.aiCorrectionMode === 'manual';
+    document.getElementById('ai-mode-auto').checked = aiConfig.aiCorrectionMode === 'auto';
+
+    // AI 提供商
+    document.getElementById('ai-provider').value = aiConfig.provider || 'zhipu';
+
+    // 根据当前提供商填充对应的配置
+    handleProviderChange();
+
+    // 加载提示词模板
+    loadPromptTemplates().then(() => {
+        // 填充下拉选择框
+        const select = document.getElementById('ai-prompt-template');
+        if (select) {
+            select.value = aiConfig.aiPromptTemplateId || 'default';
+            handlePromptTemplateChange();
+        }
+    });
+
+    // 通用配置
+    document.getElementById('ai-prompt').value = aiConfig.aiPromptTemplate || '';
+
+    // 显示模态框
+    modal.classList.remove('hidden');
+
+    // 点击灰色区域触发取消事件
+    modal.onclick = function(e) {
+        if (e.target === modal) {
+            EventBus.emit('ai:config:cancelled');
+        }
+    };
+}
