@@ -78,11 +78,11 @@ function copyToServer(text) {
 }
 
 /**
- * 调用本地 Ollama API
+ * 调用 Ollama 本地 API
  * @param {string} prompt - 提示词
  * @returns {Promise<string>} - AI 返回的处理后的文本
  */
-async function callLocalAPI(prompt) {
+async function callOllamaAPI(prompt) {
     const response = await fetch(aiConfig.localApiUrl, {
         method: 'POST',
         headers: {
@@ -96,7 +96,7 @@ async function callLocalAPI(prompt) {
     });
 
     if (!response.ok) {
-        throw new Error(`本地 API 请求失败: ${response.status}`);
+        throw new Error(`Ollama API 请求失败: ${response.status}`);
     }
 
     const data = await response.json();
@@ -104,20 +104,18 @@ async function callLocalAPI(prompt) {
 }
 
 /**
- * 调用在线 API（智谱 AI / 阿里心流）
- * 支持流式输出
+ * 调用智谱 AI API
  * @param {string} prompt - 提示词
  * @param {function} onChunk - 流式输出回调函数
  * @param {function} onComplete - 完成回调函数
  * @returns {Promise<string>} - AI 返回的完整文本
  */
-async function callOnlineAPI(prompt, onChunk, onComplete) {
-    const provider = aiConfig.onlineProvider || 'zhipu';
-    const apiKey = aiConfig.onlineApiKeys && aiConfig.onlineApiKeys[provider];
-    const model = aiConfig.onlineModels && aiConfig.onlineModels[provider];
+async function callZhipuAPI(prompt, onChunk, onComplete) {
+    const apiKey = aiConfig.onlineApiKeys?.zhipu;
+    const model = aiConfig.onlineModels?.zhipu || 'glm-4-flash-250414';
     
-    let apiUrl = '';
-    let requestBody = {
+    const apiUrl = 'https://open.bigmodel.cn/api/paas/v4/chat/completions';
+    const requestBody = {
         model: model,
         messages: [
             { role: "system", content: aiConfig.aiPromptTemplate },
@@ -125,19 +123,9 @@ async function callOnlineAPI(prompt, onChunk, onComplete) {
         ],
         stream: true,
         max_tokens: 1024,
-        temperature: 0.3
+        temperature: 0.3,
+        thinking: { type: "disabled" }  // 智谱 AI 特有参数
     };
-
-    switch (provider) {
-        case 'iflow':
-            apiUrl = 'https://apis.iflow.cn/v1/chat/completions';
-            break;
-        case 'zhipu':
-        default:
-            apiUrl = 'https://open.bigmodel.cn/api/paas/v4/chat/completions';
-            requestBody.thinking = { type: "disabled" };
-            break;
-    }
 
     const response = await fetch(apiUrl, {
         method: 'POST',
@@ -149,7 +137,85 @@ async function callOnlineAPI(prompt, onChunk, onComplete) {
     });
 
     if (!response.ok) {
-        throw new Error(`在线 API 请求失败: ${response.status}`);
+        throw new Error(`智谱 API 请求失败: ${response.status}`);
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let fullText = '';
+
+    while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split('\n');
+
+        for (const line of lines) {
+            if (line.startsWith('data:')) {
+                const data = line.slice(5).trim();
+                if (data === '[DONE]') continue;
+
+                try {
+                    const json = JSON.parse(data);
+                    const content = json.choices[0]?.delta?.content;
+                    if (content) {
+                        fullText += content;
+                        onChunk(fullText);
+                    }
+                } catch (e) {
+                    // 忽略解析错误
+                }
+            }
+        }
+    }
+
+    if (!fullText || fullText.trim() === '') {
+        throw new Error('AI返回空结果');
+    }
+
+    if (onComplete) {
+        onComplete(fullText);
+    }
+
+    return fullText;
+}
+
+/**
+ * 调用阿里心流 API
+ * @param {string} prompt - 提示词
+ * @param {function} onChunk - 流式输出回调函数
+ * @param {function} onComplete - 完成回调函数
+ * @returns {Promise<string>} - AI 返回的完整文本
+ */
+async function callIFlowAPI(prompt, onChunk, onComplete) {
+    const apiKey = aiConfig.onlineApiKeys?.iflow;
+    const model = aiConfig.onlineModels?.iflow || 'qwen3-max';
+    
+    const apiUrl = 'https://apis.iflow.cn/v1/chat/completions';
+    const requestBody = {
+        model: model,
+        messages: [
+            { role: "system", content: aiConfig.aiPromptTemplate },
+            { role: "user", content: prompt }
+        ],
+        stream: true,
+        max_tokens: 1024,
+        temperature: 0.3
+        // 不需要 thinking 参数
+    };
+
+    const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`
+        },
+        body: JSON.stringify(requestBody)
+    });
+
+    if (!response.ok) {
+        throw new Error(`阿里心流 API 请求失败: ${response.status}`);
     }
 
     const reader = response.body.getReader();

@@ -451,7 +451,7 @@ async function correctCardWithAI(cardWrapper, isAutoMode = false) {
 
         // 根据提供商选择调用不同的 API
         if (aiConfig.aiProvider === 'local') {
-            fixedText = await callLocalAPI(prompt);
+            fixedText = await callOllamaAPI(prompt);
 
             if (!fixedText || fixedText.trim() === '') {
                 throw new Error('AI返回空结果');
@@ -465,22 +465,43 @@ async function correctCardWithAI(cardWrapper, isAutoMode = false) {
             EventBus.emit('ai:process:completed', card, fixedText);
         } else {
             // 在线 API 使用流式输出
-            await callOnlineAPI(prompt,
-                // onChunk - 实时更新卡片内容
-                (chunk) => {
-                    cardContent.innerHTML = highlightDuplicates(chunk);
-                },
-                // onComplete - 流式输出完成
-                (fullText) => {
-                    if (!fullText || fullText.trim() === '') {
-                        throw new Error('AI返回空结果');
-                    }
-                    card.dataset.originalText = fullText;
+            // 根据提供商选择不同的函数
+            if (aiConfig.onlineProvider === 'iflow') {
+                await callIFlowAPI(prompt,
+                    // onChunk - 实时更新卡片内容
+                    (chunk) => {
+                        cardContent.innerHTML = highlightDuplicates(chunk);
+                    },
+                    // onComplete - 流式输出完成
+                    (fullText) => {
+                        if (!fullText || fullText.trim() === '') {
+                            throw new Error('AI返回空结果');
+                        }
+                        card.dataset.originalText = fullText;
 
-                    // 触发 ai:process:completed 事件
-                    EventBus.emit('ai:process:completed', card, fullText);
-                }
-            );
+                        // 触发 ai:process:completed 事件
+                        EventBus.emit('ai:process:completed', card, fullText);
+                    }
+                );
+            } else {
+                // 默认智谱 AI
+                await callZhipuAPI(prompt,
+                    // onChunk - 实时更新卡片内容
+                    (chunk) => {
+                        cardContent.innerHTML = highlightDuplicates(chunk);
+                    },
+                    // onComplete - 流式输出完成
+                    (fullText) => {
+                        if (!fullText || fullText.trim() === '') {
+                            throw new Error('AI返回空结果');
+                        }
+                        card.dataset.originalText = fullText;
+
+                        // 触发 ai:process:completed 事件
+                        EventBus.emit('ai:process:completed', card, fullText);
+                    }
+                );
+            }
         }
     } catch (error) {
         console.error('AI修正失败:', error);
