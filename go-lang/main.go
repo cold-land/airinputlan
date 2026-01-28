@@ -47,6 +47,13 @@ var (
 	debugMode         bool
 )
 
+// PC 端断开检测相关变量 / PC client disconnect detection variables
+var (
+	pcClientCount      int           // PC 端连接数量
+	exitTimer          *time.Timer   // 退出定时器
+	exitTimerStarted    bool          // 退出定时器是否已启动
+)
+
 func main() {
 	// 解析命令行参数 / Parse command line arguments
 	flag.BoolVar(&debugMode, "debug", false, "启用调试日志")
@@ -103,6 +110,7 @@ func main() {
 	// 初始化 SSE 服务 / Initialize SSE service
 	sseServer = network.NewSSEServer()
 	sseServer.SetOnMessage(handleMessage)
+	sseServer.SetOnPCClientsCountChange(handlePCClientsCountChange)
 	go sseServer.Run()
 
 	// 初始化 HTTP 服务（绑定到 0.0.0.0 以支持所有网卡访问） / Initialize HTTP service (bind to 0.0.0.0 for all interfaces)
@@ -249,6 +257,34 @@ func handleMessage(content string) {
 				Type: network.TypeText,
 				Data: fullContent,
 			})
+		}
+	}
+}
+
+// handlePCClientsCountChange 处理 PC 端数量变化
+// handlePCClientsCountChange handles PC clients count changes
+func handlePCClientsCountChange(count int) {
+	pcClientCount = count
+
+	if count == 0 && !exitTimerStarted {
+		// 启动 10 秒退出倒计时 / Start 10 seconds exit countdown
+		exitTimerStarted = true
+		exitTimer = time.AfterFunc(10*time.Second, func() {
+			if pcClientCount == 0 {
+				network.LogInfo("PC 端已断开 10 秒，程序退出")
+				os.Exit(0)
+			}
+		})
+		network.LogInfo("PC 端已断开，10 秒后程序将自动退出...")
+	} else if count > 0 {
+		// 取消退出倒计时 / Cancel exit countdown
+		if exitTimer != nil {
+			exitTimer.Stop()
+			exitTimer = nil
+		}
+		if exitTimerStarted {
+			network.LogInfo("PC 端已重新连接，取消退出倒计时")
+			exitTimerStarted = false
 		}
 	}
 }

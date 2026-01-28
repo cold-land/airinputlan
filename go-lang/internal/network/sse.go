@@ -42,12 +42,13 @@ type SSEClient struct {
 // SSEServer 表示 SSE 服务实例
 // SSEServer represents an SSE service instance
 type SSEServer struct {
-	Clients      map[string]*SSEClient
-	mu           sync.RWMutex
-	register     chan *SSEClient
-	unregister   chan *SSEClient
-	broadcast    chan Message
-	onMessage    func(string) // 接收消息的回调
+	Clients                      map[string]*SSEClient
+	mu                           sync.RWMutex
+	register                     chan *SSEClient
+	unregister                   chan *SSEClient
+	broadcast                    chan Message
+	onMessage                    func(string)                    // 接收消息的回调
+	onPCClientsCountChange       func(int)                       // PC 端数量变化时的回调
 }
 
 // NewSSEServer 创建 SSE 服务
@@ -64,6 +65,12 @@ func NewSSEServer() *SSEServer {
 // SetOnMessage sets the callback function for receiving messages
 func (s *SSEServer) SetOnMessage(callback func(string)) {
 	s.onMessage = callback
+}
+
+// SetOnPCClientsCountChange 设置 PC 端数量变化时的回调函数
+// SetOnPCClientsCountChange sets the callback function when PC clients count changes
+func (s *SSEServer) SetOnPCClientsCountChange(callback func(int)) {
+	s.onPCClientsCountChange = callback
 }
 
 // RLock 获取读锁
@@ -160,6 +167,17 @@ func (s *SSEServer) registerClient(client *SSEClient) {
 			}
 		}
 	}
+
+	// 统计 PC 端数量并触发回调 / Count PC clients and trigger callback
+	if s.onPCClientsCountChange != nil {
+		pcCount := 0
+		for _, c := range s.Clients {
+			if isLocalIP(c.IP) {
+				pcCount++
+			}
+		}
+		s.onPCClientsCountChange(pcCount)
+	}
 }
 
 // unregisterClient 从服务中移除指定的客户端连接
@@ -203,6 +221,17 @@ func (s *SSEServer) unregisterClient(client *SSEClient) {
 					Data: "true",
 				}
 			}
+		}
+
+		// 统计 PC 端数量并触发回调 / Count PC clients and trigger callback
+		if s.onPCClientsCountChange != nil {
+			pcCount := 0
+			for _, c := range s.Clients {
+				if isLocalIP(c.IP) {
+					pcCount++
+				}
+			}
+			s.onPCClientsCountChange(pcCount)
 		}
 	}
 }
