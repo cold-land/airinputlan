@@ -71,13 +71,17 @@ Open "System Preferences" → "Security & Privacy" → "Firewall", add `AirInput
 
 ## 📦 Version History
 
-### v1.2.5 (Current Version)
+### v1.2.7 (Current Version)
 
 **New Features:**
-- ✅ Online AI correction feature (supports Zhipu AI and Alibaba iFlow)
-- ✅ Automatic AI correction feature (manual/auto modes)
-- ✅ Configuration persistence (auto-save, auto-restore after refresh)
-- ✅ Prompt template presets feature
+- ✅ Event-driven architecture (EventBus system)
+- ✅ Markdown rendering in empty prompt mode
+- ✅ Auto-exit 10 seconds after PC disconnects
+
+**Optimizations & Fixes:**
+- ✅ Prevent API concurrency
+- ✅ Fix Ollama API warmup failure
+- ✅ Fix duplicate copy issue in edit mode
 - ✅ Standalone template editor tool
 - ✅ Restore default configuration feature
 - ✅ Toast notification system
