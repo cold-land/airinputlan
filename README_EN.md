@@ -4,6 +4,24 @@
 
 PC voice input lags behind mobile. AirInputLan syncs mobile input to PC in real-time via LAN, suitable for mixed Chinese/English input, AI conversations, meeting records, etc.
 
+### 📦 Version Notes
+
+**Go Version**: ✅ Fully functional, but architecture design didn't consider extensibility, leading to unfixable known bugs and inability to implement new features.
+
+**Architecture Problem Example** (AI Concurrency Rate Limiting):
+
+```
+Server →[SSE]→ PC₁ ─┐
+              PC₂ ─┼─→ Each requests AI → N concurrent requests → Rate limit triggered
+              PCₙ ─┘
+
+Ideal: Server requests AI once (1 request) → Distributes to all PCs
+```
+
+Due to SSE's one-way communication limitation, PCs cannot send "need AI processing" signal back to server, causing each PC to request AI independently. This is just one example; there are many similar architecture problems.
+
+**Nim Version**: 🚧 Refactoring in progress, using better architecture design to solve such problems (learning Nim + AI assistance)
+
 ## ✨ Features
 
 - ✅ **Cross-platform Support** - Windows/macOS/Linux full platform support
