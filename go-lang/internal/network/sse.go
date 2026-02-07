@@ -31,12 +31,13 @@ type Message struct {
 // SSEClient 表示一个 SSE 客户端连接
 // SSEClient represents an SSE client connection
 type SSEClient struct {
-	ID        string
-	IP        string // 客户端 IP 地址
-	Send      chan Message
-	Close     chan struct{}
-	mu        sync.RWMutex
-	isClosed  bool
+	ID            string
+	IP            string    // 客户端 IP 地址
+	Send          chan Message
+	Close         chan struct{}
+	mu            sync.RWMutex
+	isClosed      bool
+	LastHeartbeat time.Time // 最后收到心跳的时间
 }
 
 // SSEServer 表示 SSE 服务实例
@@ -210,8 +211,15 @@ func (s *SSEServer) unregisterClient(client *SSEClient) {
 			hasRemoteClient := false
 			for _, c := range s.Clients {
 				if !isLocalIP(c.IP) {
-					hasRemoteClient = true
-					break
+					// 检查心跳是否超时（30秒内有心跳则认为仍在连接）
+					c.mu.RLock()
+					heartbeatActive := time.Since(c.LastHeartbeat) < 30*time.Second
+					c.mu.RUnlock()
+
+					if heartbeatActive {
+						hasRemoteClient = true
+						break
+					}
 				}
 			}
 			// 如果没有其他远程设备，发送信号显示二维码 / If no other remote devices, send signal to show QR code
@@ -319,10 +327,11 @@ func (s *SSEServer) HandleSSE(w http.ResponseWriter, r *http.Request) {
 	// 创建客户端 / Create client
 	clientID := generateClientID()
 	client := &SSEClient{
-		ID:    clientID,
-		IP:    clientIP,
-		Send:  make(chan Message, 256),
-		Close: make(chan struct{}, 1),
+		ID:            clientID,
+		IP:            clientIP,
+		Send:          make(chan Message, 256),
+		Close:         make(chan struct{}, 1),
+		LastHeartbeat: time.Now(),
 	}
 
 	// 注册客户端 / Register client
@@ -434,6 +443,15 @@ func (s *SSEServer) HandlePostMessage(w http.ResponseWriter, r *http.Request) {
 
 	// 处理心跳 / Handle heartbeat
 	if msg.Type == "heartbeat" {
+		// 更新客户端的最后心跳时间
+		s.mu.RLock()
+		if client, exists := s.Clients[clientIP]; exists {
+			client.mu.Lock()
+			client.LastHeartbeat = time.Now()
+			client.mu.Unlock()
+		}
+		s.mu.RUnlock()
+
 		w.WriteHeader(http.StatusOK)
 		return
 	}

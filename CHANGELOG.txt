@@ -6,6 +6,14 @@ AirInputLan 更新日志 / Changelog
 This document records the update history of all AirInputLan versions.
 
 
+v1.2.8 (2026-02-07)
+-------------------
+
+修复问题 / Bug Fixes:
+  * 修复多网卡场景下二维码意外显示问题，引入心跳超时机制
+  * Fixed QR code unexpected display in multi-network interface scenarios, introduce heartbeat timeout mechanism
+
+
 v1.2.7 (2026-01-28)
 -------------------
 

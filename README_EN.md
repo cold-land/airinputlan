@@ -89,12 +89,10 @@ Open "System Preferences" → "Security & Privacy" → "Firewall", add `AirInput
 
 ## 📦 Version History
 
-### v1.2.7 (Current Version)
+### v1.2.8 (Current Version)
 
-**New Features:**
-- ✅ Event-driven architecture (EventBus system)
-- ✅ Markdown rendering in empty prompt mode
-- ✅ Auto-exit 10 seconds after PC disconnects
+**Bug Fixes:**
+- ✅ Fixed QR code unexpected display during network fluctuations
 
 **Optimizations & Fixes:**
 - ✅ Prevent API concurrency
